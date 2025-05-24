@@ -713,8 +713,7 @@ const templates: Template[] = [
 ];
 
 // Export the templates array for use in other modules
-const getTemplates = () => templates;
-module.exports = { getTemplates, router };
+export const getTemplates = () => templates;
 
 // Get all templates
 router.get('/', (req, res) => {

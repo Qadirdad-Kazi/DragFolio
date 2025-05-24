@@ -1,18 +1,34 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'wouter';
+import { useParams, useLocation } from 'wouter';
+import { portfolioApi } from '../services/api';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import EditorSidebar from '@/components/editor/EditorSidebar';
 import EditorCanvas from '@/components/editor/EditorCanvas';
 import EditorSettings from '@/components/editor/EditorSettings';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getDefaultTitle, getDefaultContent, reorder } from '@/lib/utils';
 import { SectionType, PortfolioSection, PortfolioTheme, Portfolio, PreviewDeviceType } from '@/types';
 
 export default function Editor() {
-  const { id } = useParams();
+  const { id: paramId } = useParams();
+  const [location] = useLocation();
   const { toast } = useToast();
+  
+  // Extract portfolio ID from URL query parameters
+  const getPortfolioId = () => {
+    // First check if we have an ID in the URL path
+    if (paramId) return paramId;
+    
+    // Otherwise, check for ID in query parameters
+    const searchParams = new URLSearchParams(
+      location.includes('?') ? location.split('?')[1] : ''
+    );
+    return searchParams.get('id') || '';
+  };
+  
+  const portfolioId = getPortfolioId();
   
   // State for portfolio data
   const [portfolio, setPortfolio] = useState<Portfolio>({
@@ -43,18 +59,18 @@ export default function Editor() {
 
   // Load portfolio data if editing existing portfolio
   useEffect(() => {
-    if (id) {
+    if (portfolioId) {
       setIsLoading(true);
+      console.log('Loading portfolio with ID:', portfolioId);
       
-      fetch(`/api/portfolios/${id}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to load portfolio');
-          }
-          return response.json();
-        })
+      portfolioApi.getById(portfolioId)
         .then(data => {
+          console.log('Portfolio data loaded:', data);
           setPortfolio(data);
+          // Select the first section if available
+          if (data.sections && data.sections.length > 0) {
+            setSelectedSection(data.sections[0].id);
+          }
         })
         .catch(error => {
           console.error('Error loading portfolio:', error);
@@ -68,7 +84,7 @@ export default function Editor() {
           setIsLoading(false);
         });
     }
-  }, [id, toast]);
+  }, [portfolioId, toast]);
 
   // Add a new section
   const addSection = (type: SectionType) => {
@@ -149,22 +165,15 @@ export default function Editor() {
     setIsSaving(true);
     
     try {
-      const url = id ? `/api/portfolios/${id}` : '/api/portfolios';
-      const method = id ? 'PUT' : 'POST';
+      let data;
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(portfolio)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save portfolio');
+      if (portfolioId) {
+        // Update existing portfolio
+        data = await portfolioApi.update(portfolioId, portfolio);
+      } else {
+        // Create new portfolio
+        data = await portfolioApi.create(portfolio);
       }
-      
-      const data = await response.json();
       
       toast({
         title: 'Success',
@@ -188,11 +197,12 @@ export default function Editor() {
   // Export portfolio as HTML/ZIP
   const exportPortfolio = async () => {
     try {
-      if (!id) {
+      if (!portfolioId) {
+        // Save first if this is a new portfolio
         const savedPortfolio = await savePortfolio();
         window.location.href = `/api/portfolios/${savedPortfolio.id}/export`;
       } else {
-        window.location.href = `/api/portfolios/${id}/export`;
+        window.location.href = `/api/portfolios/${portfolioId}/export`;
       }
     } catch (error) {
       console.error('Error exporting portfolio:', error);
@@ -202,14 +212,14 @@ export default function Editor() {
   // Deploy portfolio to subdomain
   const deployPortfolio = async (subdomain: string) => {
     try {
-      let portfolioId = id;
+      let portfolioIdToUse = portfolioId;
       
-      if (!portfolioId) {
+      if (!portfolioIdToUse) {
         const savedPortfolio = await savePortfolio();
-        portfolioId = savedPortfolio.id;
+        portfolioIdToUse = savedPortfolio.id;
       }
       
-      const response = await fetch(`/api/portfolios/${portfolioId}/deploy`, {
+      const response = await fetch(`/api/portfolios/${portfolioIdToUse}/deploy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

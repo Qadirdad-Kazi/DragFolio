@@ -17,7 +17,7 @@ import templateRoutes from './routes/template';
 import userRoutes from './routes/user';
 
 // Environment variables
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002; // Changed to 3002 to avoid conflicts
 const SESSION_SECRET = process.env.SESSION_SECRET || 'dragfolio-secret-key';
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
@@ -36,12 +36,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? 'https://dragfolio.app' 
-    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177'],
   credentials: true
 }));
 
 // Log CORS configuration
-console.log('CORS configured for development:', ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176']);
+console.log('CORS configured for development:', ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177']);
 
 // Session configuration
 app.use(session({

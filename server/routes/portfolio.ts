@@ -1,5 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
+import { getTemplates } from './template';
 
 const router = express.Router();
 
@@ -72,14 +73,21 @@ router.post('/', async (req, res) => {
       
       // Find the template from the mock templates array in template.ts
       // In a real implementation, this would be a database query
-      const { getTemplates } = require('./template');
       const templates = getTemplates();
+      console.log('Available templates:', templates.map((t: any) => ({ id: t.id, name: t.name })));
+      
       const template = templates.find((t: any) => t.id === templateId);
       
       if (template) {
         console.log('Template found:', template.name);
-        initialSections = JSON.parse(JSON.stringify(template.sections)); // Deep clone to avoid reference issues
+        console.log('Template sections:', JSON.stringify(template.sections, null, 2));
+        console.log('Template theme:', JSON.stringify(template.theme, null, 2));
+        
+        // Deep clone to avoid reference issues
+        initialSections = JSON.parse(JSON.stringify(template.sections)); 
         initialTheme = JSON.parse(JSON.stringify(template.theme));
+        
+        console.log('Initial sections after cloning:', JSON.stringify(initialSections, null, 2));
       } else {
         console.log('Template not found with ID:', templateId);
         return res.status(404).json({ message: 'Template not found' });

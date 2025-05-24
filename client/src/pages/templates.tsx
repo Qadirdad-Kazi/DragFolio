@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { 
   Container,
@@ -34,7 +33,7 @@ const CATEGORIES = [
 ];
 
 export default function Templates() {
-  const [_, navigate] = useLocation();
+  // We don't need navigate anymore since we're using window.location.href
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -93,35 +92,20 @@ export default function Templates() {
       
       console.log('Creating portfolio from template ID:', templateId);
       
+      // First, get the template details to verify it exists
+      const template = templates.find(t => t.id === templateId);
+      if (!template) {
+        throw new Error(`Template with ID ${templateId} not found`);
+      }
+      
+      console.log('Found template:', template.name);
+      
       // Create a new portfolio based on the selected template
-      const portfolioData: {
-        title: string;
-        description: string;
-        template: string;
-        sections: any[];
-        theme: {
-          mode: 'light' | 'dark';
-          primaryColor: string;
-          secondaryColor: string;
-          fontFamily: string;
-          fontSize: string;
-        };
-        isPublished: boolean;
-        userId: string;
-      } = {
+      // Only send the template ID - the server will handle applying the template data
+      const portfolioData = {
         title: 'New Portfolio',
-        description: 'Created from template',
+        description: `Created from ${template.name} template`,
         template: templateId,
-        // Add empty sections array to satisfy validation
-        sections: [],
-        // Add basic theme to satisfy validation
-        theme: {
-          mode: 'light',
-          primaryColor: '#3490dc',
-          secondaryColor: '#ffed4a',
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '16px'
-        },
         isPublished: false,
         userId: 'demo-user' // In a real app, this would come from authentication
       };
@@ -133,7 +117,7 @@ export default function Templates() {
       console.log('New portfolio created:', newPortfolio);
       
       // Navigate to the editor with the new portfolio ID
-      navigate(`/editor?id=${newPortfolio.id}`);
+      window.location.href = `/editor?id=${newPortfolio.id}`;
     } catch (err) {
       console.error('Failed to create portfolio from template:', err);
       setError('Failed to create portfolio from template. Please try again.');
