@@ -1,0 +1,146 @@
+# Dragfolio UI Testing Guide
+
+This document provides step-by-step instructions for testing the Dragfolio web application UI.
+
+## Prerequisites
+
+1. Node.js (v14 or higher) installed
+2. npm or yarn installed
+3. MongoDB running locally or connection to a MongoDB instance
+4. All dependencies installed (run `npm install` in both client and server directories)
+
+## Starting the Application for Testing
+
+1. Start the server:
+   ```
+   cd server
+   npm run dev
+   ```
+
+2. Start the client:
+   ```
+   cd client
+   npm start
+   ```
+
+3. Open your browser and navigate to `http://localhost:3000`
+
+## UI Testing Scenarios
+
+### 1. Authentication
+
+- **Test Registration:**
+  - Navigate to the registration page
+  - Fill in all required fields (name, email, password)
+  - Submit the form and verify successful account creation
+  - Verify redirection to the dashboard
+
+- **Test Login:**
+  - Navigate to the login page
+  - Enter valid credentials
+  - Verify successful login and redirection to the dashboard
+  - Test "Remember Me" functionality
+  - Test "Forgot Password" flow
+
+### 2. Dashboard
+
+- **Portfolio List:**
+  - Verify all user portfolios are displayed
+  - Test sorting and filtering options
+  - Verify portfolio cards show correct information (title, last edited, thumbnail)
+
+- **Create New Portfolio:**
+  - Click "Create New Portfolio" button
+  - Fill in portfolio details
+  - Verify new portfolio appears in the list
+  - Test template selection functionality
+
+### 3. Editor Interface
+
+- **Sidebar Navigation:**
+  - Verify all sidebar sections are accessible
+  - Test collapsing/expanding the sidebar
+  - Verify active section is highlighted
+
+- **Drag and Drop Functionality:**
+  - Drag various block types from the component library to the canvas
+  - Verify blocks are properly added to the canvas
+  - Test reordering blocks by dragging them up/down
+  - Verify visual feedback during drag operations (highlighting, etc.)
+
+- **Block Properties:**
+  - Select different blocks and verify properties panel updates accordingly
+  - Edit properties for each block type (text, images, links, etc.)
+  - Verify changes are reflected in real-time in the canvas
+
+- **Theme Customization:**
+  - Open the theme customizer
+  - Test changing primary and secondary colors
+  - Test changing font family and font size
+  - Test switching between light and dark mode
+  - Verify changes are applied immediately
+
+- **Responsive Preview:**
+  - Toggle between desktop, tablet, and mobile views
+  - Verify layout adjusts appropriately for each device size
+  - Test interactions in each view mode
+
+### 4. Export and Deployment
+
+- **HTML Export:**
+  - Click "Export as HTML" button
+  - Verify download starts
+  - Extract the downloaded file and open in a browser
+  - Verify all content and styling is correct
+
+- **Subdomain Deployment:**
+  - Click "Deploy to Subdomain" button
+  - Enter a subdomain name
+  - Complete the deployment process
+  - Verify the portfolio is accessible at the specified subdomain
+
+### 5. Image Upload
+
+- **Image Uploader:**
+  - Test uploading images of different formats (JPG, PNG, GIF)
+  - Test uploading images of different sizes
+  - Verify preview is shown after upload
+  - Test replacing an existing image
+  - Test deleting an uploaded image
+
+### 6. Accessibility Testing
+
+- Test keyboard navigation throughout the application
+- Verify proper focus states for interactive elements
+- Check color contrast for text elements
+- Verify screen reader compatibility
+- Test with browser zoom (up to 200%)
+
+### 7. Error Handling
+
+- Test form validation errors
+- Test API error responses
+- Test offline behavior
+- Verify helpful error messages are displayed
+
+## Reporting Issues
+
+When reporting issues, please include:
+
+1. Steps to reproduce the issue
+2. Expected behavior
+3. Actual behavior
+4. Screenshots or screen recordings if possible
+5. Browser and operating system information
+6. Console errors (if any)
+
+## Automated Testing
+
+For running automated UI tests:
+
+```
+cd client
+npm run cypress:open
+```
+
+Select the test suite you want to run from the Cypress test runner.
