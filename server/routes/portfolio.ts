@@ -12,26 +12,26 @@ const portfolioSchema = z.object({
       id: z.string(),
       type: z.enum(['about', 'projects', 'skills', 'resume', 'testimonials', 'blog', 'contact']),
       title: z.string(),
-      content: z.any(),
+      content: z.any().optional(), // Make content optional to match template data
       order: z.number(),
       layout: z.enum(['full', 'half', 'two-columns']).default('full'),
       settings: z.record(z.any()).optional()
     })
-  ),
+  ).optional(), // Make sections optional during creation
   theme: z.object({
     mode: z.enum(['light', 'dark']).default('light'),
     primaryColor: z.string().default('#3490dc'),
     secondaryColor: z.string().default('#ffed4a'),
     fontFamily: z.string().default('Inter, sans-serif'),
     fontSize: z.string().default('16px')
-  }),
+  }).optional(), // Make theme optional during creation
   isPublished: z.boolean().default(false),
   subdomain: z.string().optional(),
   userId: z.string()
-});
+}).passthrough(); // Allow extra fields like 'template'
 
 // Mock portfolio database (replace with actual DB implementation)
-const portfolios = [];
+const portfolios: any[] = [];
 
 // Get all portfolios for a user
 router.get('/', (req, res) => {
@@ -42,7 +42,7 @@ router.get('/', (req, res) => {
 
 // Get a specific portfolio
 router.get('/:id', (req, res) => {
-  const portfolio = portfolios.find(p => p.id === req.params.id);
+  const portfolio = portfolios.find((p: any) => p.id === req.params.id);
   if (!portfolio) {
     return res.status(404).json({ message: 'Portfolio not found' });
   }
@@ -50,10 +50,68 @@ router.get('/:id', (req, res) => {
 });
 
 // Create a new portfolio
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    // Validate request body
-    const validatedData = portfolioSchema.parse(req.body);
+    console.log('Creating portfolio with data:', req.body);
+    
+    // Check if a template ID is provided
+    const { template: templateId, ...portfolioData } = req.body as { template?: string } & Record<string, any>;
+    
+    let initialSections: any[] = [];
+    let initialTheme = {
+      mode: 'light' as const,
+      primaryColor: '#3490dc',
+      secondaryColor: '#ffed4a',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '16px'
+    };
+    
+    // If a template ID is provided, fetch the template and use its sections and theme
+    if (templateId) {
+      console.log('Template ID provided:', templateId);
+      
+      // Find the template from the mock templates array in template.ts
+      // In a real implementation, this would be a database query
+      const { getTemplates } = require('./template');
+      const templates = getTemplates();
+      const template = templates.find((t: any) => t.id === templateId);
+      
+      if (template) {
+        console.log('Template found:', template.name);
+        initialSections = JSON.parse(JSON.stringify(template.sections)); // Deep clone to avoid reference issues
+        initialTheme = JSON.parse(JSON.stringify(template.theme));
+      } else {
+        console.log('Template not found with ID:', templateId);
+        return res.status(404).json({ message: 'Template not found' });
+      }
+    }
+    
+    // Ensure we have a userId
+    if (!portfolioData.userId) {
+      portfolioData.userId = 'demo-user'; // In a real app, this would come from authentication
+    }
+    
+    // Merge the portfolio data with the template data
+    const mergedData = {
+      ...portfolioData,
+      sections: portfolioData.sections || initialSections,
+      theme: portfolioData.theme || initialTheme
+    };
+    
+    console.log('Merged portfolio data:', JSON.stringify(mergedData, null, 2));
+    
+    // Validate the merged data with safeParse to get detailed error information
+    const validationResult = portfolioSchema.safeParse(mergedData);
+    
+    if (!validationResult.success) {
+      console.error('Portfolio validation failed:', JSON.stringify(validationResult.error.format(), null, 2));
+      return res.status(400).json({
+        message: 'Validation error',
+        errors: validationResult.error.errors
+      });
+    }
+    
+    const validatedData = validationResult.data;
     
     // Create new portfolio
     const newPortfolio = {
@@ -66,9 +124,11 @@ router.post('/', (req, res) => {
     // Save portfolio (mock implementation)
     portfolios.push(newPortfolio);
     
+    console.log('Successfully created portfolio:', JSON.stringify(newPortfolio, null, 2));
     res.status(201).json(newPortfolio);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
       return res.status(400).json({ message: 'Validation error', errors: error.errors });
     }
     console.error('Create portfolio error:', error);
@@ -80,7 +140,7 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     // Find portfolio
-    const portfolioIndex = portfolios.findIndex(p => p.id === req.params.id);
+    const portfolioIndex = portfolios.findIndex((p: any) => p.id === req.params.id);
     if (portfolioIndex === -1) {
       return res.status(404).json({ message: 'Portfolio not found' });
     }
@@ -90,7 +150,7 @@ router.put('/:id', (req, res) => {
     
     // Update portfolio
     const updatedPortfolio = {
-      ...portfolios[portfolioIndex],
+      ...portfolios[portfolioIndex] as any,
       ...validatedData,
       updatedAt: new Date().toISOString()
     };

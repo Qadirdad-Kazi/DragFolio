@@ -9,6 +9,7 @@ import Home from "./pages/home";
 import Dashboard from "./pages/dashboard";
 import Editor from "./pages/editor";
 import Templates from "./pages/templates";
+import Preview from "./pages/preview";
 import Login from "./pages/login";
 import Register from "./pages/register";
 import Admin from "./pages/admin";
@@ -52,6 +53,7 @@ function Router() {
         {(params) => <ProtectedRoute component={Editor} path={`/editor/${params.id}`} />}
       </Route>
       <Route path="/templates" component={Templates} />
+      <Route path="/preview" component={Preview} />
       <Route path="/admin">
         {() => <ProtectedRoute component={Admin} path="/admin" />}
       </Route>

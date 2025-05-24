@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { User } from '../models/mongoose-schema';
 
 const router = express.Router();
 
@@ -18,8 +19,7 @@ const loginSchema = z.object({
   password: z.string()
 });
 
-// Mock user database (replace with actual DB implementation)
-const users = [];
+// MongoDB is now used instead of the mock user database
 
 // JWT secret
 const JWT_SECRET = process.env.JWT_SECRET || 'dragfolio-jwt-secret';
@@ -31,7 +31,7 @@ router.post('/register', async (req, res) => {
     const validatedData = userSchema.parse(req.body);
     
     // Check if user already exists
-    const existingUser = users.find(user => user.email === validatedData.email);
+    const existingUser = await User.findOne({ email: validatedData.email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -41,24 +41,23 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(validatedData.password, salt);
     
     // Create new user
-    const newUser = {
-      id: Date.now().toString(),
+    const newUser = new User({
       email: validatedData.email,
       password: hashedPassword,
       name: validatedData.name || validatedData.email.split('@')[0]
-    };
+    });
     
-    // Save user (mock implementation)
-    users.push(newUser);
+    // Save user to MongoDB
+    await newUser.save();
     
     // Generate JWT
-    const token = jwt.sign({ id: newUser.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: '7d' });
     
     // Return user data and token
     res.status(201).json({
       token,
       user: {
-        id: newUser.id,
+        id: newUser._id,
         email: newUser.email,
         name: newUser.name
       }
@@ -79,7 +78,7 @@ router.post('/login', async (req, res) => {
     const validatedData = loginSchema.parse(req.body);
     
     // Find user
-    const user = users.find(user => user.email === validatedData.email);
+    const user = await User.findOne({ email: validatedData.email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -91,13 +90,13 @@ router.post('/login', async (req, res) => {
     }
     
     // Generate JWT
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     
     // Return user data and token
     res.json({
       token,
       user: {
-        id: user.id,
+        id: user._id,
         email: user.email,
         name: user.name
       }

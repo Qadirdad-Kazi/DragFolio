@@ -1,9 +1,13 @@
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { neon } from '@neondatabase/serverless';
+import mongoose from 'mongoose';
 import cors from 'cors';
 
 // Import routes
@@ -17,6 +21,11 @@ const PORT = process.env.PORT || 3001;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'dragfolio-secret-key';
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
+// Debug logging
+console.log('Environment variables loaded:');
+console.log('DATABASE_URL exists:', !!DATABASE_URL);
+console.log('DATABASE_URL starts with:', DATABASE_URL ? DATABASE_URL.substring(0, 15) + '...' : 'empty');
+
 // Initialize Express app
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -27,9 +36,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? 'https://dragfolio.app' 
-    : 'http://localhost:5173',
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
   credentials: true
 }));
+
+// Log CORS configuration
+console.log('CORS configured for development:', ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176']);
 
 // Session configuration
 app.use(session({
@@ -43,11 +55,10 @@ app.use(session({
 }));
 
 // Database connection
-let db;
 if (DATABASE_URL) {
-  const sql = neon(DATABASE_URL);
-  db = drizzle(sql);
-  console.log('Connected to database');
+  mongoose.connect(DATABASE_URL)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('MongoDB connection error:', err));
 } else {
   console.warn('No DATABASE_URL provided, database features will not work');
 }

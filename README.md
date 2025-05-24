@@ -60,9 +60,9 @@ dragfolio/
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm or yarn
-- MongoDB
+- MongoDB Atlas account (or local MongoDB installation)
 
 ### Installation
 
@@ -72,47 +72,104 @@ dragfolio/
    cd dragfolio
    ```
 
-2. Install dependencies for both client and server:
+2. Install dependencies for the entire project:
    ```bash
-   # Install server dependencies
-   cd server
-   npm install
-
-   # Install client dependencies
-   cd ../client
+   # Install dependencies for both client and server from the root directory
    npm install
    ```
 
-3. Create a `.env` file in the server directory with the following variables:
+3. Create a `.env` file in the root directory with the following variables:
    ```
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/dragfolio
+   NODE_ENV=development
+   PORT=3001
+   SESSION_SECRET=your_session_secret
    JWT_SECRET=your_jwt_secret
-   CLOUDINARY_CLOUD_NAME=your_cloud_name
-   CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
-   ```
-
-4. Create a `.env` file in the client directory with the following variables:
-   ```
-   REACT_APP_API_URL=http://localhost:5000/api
+   CLIENT_URL=http://localhost:5173
+   DATABASE_URL=your_mongodb_connection_string
+   # Optional: Add your Cloudinary credentials
+   CLOUDINARY_CLOUD_NAME=
+   CLOUDINARY_API_KEY=
+   CLOUDINARY_API_SECRET=
    ```
 
 ### Running the Application
 
-1. Start the server:
+1. Start both the client and server with a single command from the root directory:
    ```bash
-   cd server
    npm run dev
    ```
 
-2. Start the client:
-   ```bash
-   cd client
-   npm start
-   ```
+   This will start:
+   - The backend server on http://localhost:3001
+   - The frontend client on http://localhost:5173 (or the next available port)
 
-3. Open your browser and navigate to `http://localhost:3000`
+2. Open your browser and navigate to the frontend URL shown in the terminal (typically http://localhost:5173)
+
+### MongoDB Setup
+
+1. Create a MongoDB Atlas account if you don't have one: https://www.mongodb.com/cloud/atlas/register
+2. Create a new cluster and get your connection string
+3. Replace `your_mongodb_connection_string` in the `.env` file with your actual MongoDB connection string
+
+### Template Management
+
+The application comes with 10 pre-configured professional templates for various fields including developers, designers, photographers, students, freelancers, writers, artists, musicians, teachers, and entrepreneurs.
+
+#### Adding New Templates
+
+You can add new templates to the application by modifying the `server/routes/template.ts` file or by creating a dedicated script in the `server/scripts` directory.
+
+1. **Direct Addition to Template Routes**:
+   - Open `server/routes/template.ts`
+   - Add a new template object to the `templates` array following the existing template structure
+   - Each template should include:
+     - Unique ID
+     - Name and description
+     - Category (developer, designer, student, freelancer, photographer, etc.)
+     - Thumbnail URL
+     - Sections array with appropriate content
+     - Theme configuration
+
+2. **Using a Script**:
+   - Create a new script in the `server/scripts` directory (e.g., `add-custom-templates.ts`)
+   - Use the Mongoose Template model to create and save new templates
+   - Run the script with: `npx tsx server/scripts/add-custom-templates.ts`
+
+#### Template Structure Example
+
+```typescript
+{
+  id: 'unique-id',
+  name: 'Template Name',
+  description: 'Template description',
+  category: 'category-name',  // One of: developer, designer, student, freelancer, photographer
+  thumbnail: 'https://example.com/thumbnail.jpg',
+  sections: [
+    {
+      id: generateId(),
+      type: 'about',  // Section type (about, projects, skills, resume, testimonials, blog, contact)
+      title: 'About Me',
+      content: {
+        headline: 'Your Profession',
+        bio: 'Your bio description',
+        image: 'https://example.com/profile.jpg'
+      },
+      order: 0,
+      layout: 'full'  // Layout type (full, half, two-columns)
+    },
+    // Add more sections as needed
+  ],
+  theme: {
+    mode: 'light',  // light or dark
+    primaryColor: '#3490dc',
+    secondaryColor: '#ffed4a',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '16px'
+  },
+  isFeatured: false,
+  isPublic: true
+}
+```
 
 ## 🧪 Testing
 

@@ -4,26 +4,29 @@ This document provides step-by-step instructions for testing the Dragfolio web a
 
 ## Prerequisites
 
-1. Node.js (v14 or higher) installed
+1. Node.js (v16 or higher) installed
 2. npm or yarn installed
-3. MongoDB running locally or connection to a MongoDB instance
-4. All dependencies installed (run `npm install` in both client and server directories)
+3. MongoDB Atlas account or local MongoDB instance
+4. All dependencies installed (run `npm install` in the root directory)
 
 ## Starting the Application for Testing
 
-1. Start the server:
+1. Create a `.env` file in the root directory with the following variables:
    ```
-   cd server
+   NODE_ENV=development
+   PORT=3001
+   SESSION_SECRET=your_session_secret
+   JWT_SECRET=your_jwt_secret
+   CLIENT_URL=http://localhost:5173
+   DATABASE_URL=your_mongodb_connection_string
+   ```
+
+2. Start both client and server with a single command:
+   ```
    npm run dev
    ```
 
-2. Start the client:
-   ```
-   cd client
-   npm start
-   ```
-
-3. Open your browser and navigate to `http://localhost:3000`
+3. Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5173`)
 
 ## UI Testing Scenarios
 
@@ -51,11 +54,21 @@ This document provides step-by-step instructions for testing the Dragfolio web a
 
 - **Create New Portfolio:**
   - Click "Create New Portfolio" button
-  - Fill in portfolio details
+  - Fill in portfolio details (title, description)
+  - Select one of the 10 professional templates (Developer, Designer, Photographer, Student, Freelancer, Writer, Artist, Musician, Teacher, or Entrepreneur)
   - Verify new portfolio appears in the list
-  - Test template selection functionality
+  - Verify the template structure is correctly applied to the new portfolio
 
-### 3. Editor Interface
+### 3. Templates
+
+- **Template Gallery:**
+  - Navigate to the Templates page
+  - Verify all 10 professional templates are displayed
+  - Test filtering templates by category (Developer, Designer, Student, Freelancer, Photographer)
+  - Verify template details are displayed correctly (name, description, sections)
+  - Test template selection and portfolio creation from template
+
+### 4. Editor Interface
 
 - **Sidebar Navigation:**
   - Verify all sidebar sections are accessible
@@ -85,7 +98,7 @@ This document provides step-by-step instructions for testing the Dragfolio web a
   - Verify layout adjusts appropriately for each device size
   - Test interactions in each view mode
 
-### 4. Export and Deployment
+### 5. Export and Deployment
 
 - **HTML Export:**
   - Click "Export as HTML" button
@@ -99,7 +112,7 @@ This document provides step-by-step instructions for testing the Dragfolio web a
   - Complete the deployment process
   - Verify the portfolio is accessible at the specified subdomain
 
-### 5. Image Upload
+### 6. Image Upload
 
 - **Image Uploader:**
   - Test uploading images of different formats (JPG, PNG, GIF)
@@ -108,7 +121,7 @@ This document provides step-by-step instructions for testing the Dragfolio web a
   - Test replacing an existing image
   - Test deleting an uploaded image
 
-### 6. Accessibility Testing
+### 7. Accessibility Testing
 
 - Test keyboard navigation throughout the application
 - Verify proper focus states for interactive elements
@@ -116,7 +129,7 @@ This document provides step-by-step instructions for testing the Dragfolio web a
 - Verify screen reader compatibility
 - Test with browser zoom (up to 200%)
 
-### 7. Error Handling
+### 8. Error Handling
 
 - Test form validation errors
 - Test API error responses

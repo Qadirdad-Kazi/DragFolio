@@ -45,7 +45,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      await register(name, email, password);
+      await register(email, password, name);
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);

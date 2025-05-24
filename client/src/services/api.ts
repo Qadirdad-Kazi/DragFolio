@@ -1,7 +1,8 @@
 import { Portfolio, Template, Section, Theme } from '@/types';
 
 // Base API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3001/api';
+console.log('Using API URL:', API_URL);
 
 // Helper to get the auth token
 const getToken = () => localStorage.getItem('token');
@@ -15,18 +16,29 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
+
+  const url = `${API_URL}${endpoint}`;
+  console.log(`Making API request to: ${url}`);
   
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'API request failed');
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      // Add cache control to prevent caching issues
+      cache: 'no-cache',
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`API request failed: ${url}`, errorData);
+      throw new Error(errorData.message || 'API request failed');
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error(`API request error for ${url}:`, error);
+    throw error;
   }
-  
-  return response.json();
 };
 
 // Portfolio API
@@ -38,10 +50,13 @@ export const portfolioApi = {
   getById: (id: string) => apiRequest(`/portfolios/${id}`),
   
   // Create a new portfolio
-  create: (data: Partial<Portfolio>) => apiRequest('/portfolios', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
+  create: (data: Partial<Portfolio> & { template?: string }) => {
+    console.log('Creating portfolio with data:', data);
+    return apiRequest('/portfolios', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
   
   // Update a portfolio
   update: (id: string, data: Partial<Portfolio>) => apiRequest(`/portfolios/${id}`, {

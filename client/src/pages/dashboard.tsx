@@ -150,7 +150,17 @@ export default function Dashboard() {
         title: newPortfolioName,
         description: newPortfolioDescription || '',
         template: newPortfolioTemplate,
-        isPublished: false
+        isPublished: false,
+        // Add required fields based on server validation schema
+        sections: [],
+        theme: {
+          mode: 'light',
+          primaryColor: '#3490dc',
+          secondaryColor: '#ffed4a',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '16px'
+        },
+        userId: user?.id || 'temp-user-id' // Use the logged-in user ID or a temporary one
       });
       
       setPortfolios([newPortfolio, ...portfolios]);

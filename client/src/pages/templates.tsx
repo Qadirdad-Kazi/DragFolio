@@ -24,15 +24,12 @@ import { templateApi, portfolioApi } from '../services/api';
 import { Template } from '../types';
 
 // Categories for filtering
-
-// Categories for filtering
 const CATEGORIES = [
   { value: 'all', label: 'All Categories' },
   { value: 'developer', label: 'Developer' },
   { value: 'designer', label: 'Designer' },
+  { value: 'student', label: 'Student' },
   { value: 'freelancer', label: 'Freelancer' },
-  { value: 'professional', label: 'Professional' },
-  { value: 'creative', label: 'Creative' },
   { value: 'photographer', label: 'Photographer' }
 ];
 
@@ -57,7 +54,8 @@ export default function Templates() {
     
     try {
       const data = await templateApi.getAll();
-      setTemplates(data.filter((template: any) => template.isPublished));
+      console.log('Templates received from API:', data);
+      setTemplates(data.filter((template: any) => template.isPublic));
     } catch (err) {
       console.error('Failed to fetch templates:', err);
       setError('Failed to load templates. Please try again later.');
@@ -90,19 +88,57 @@ export default function Templates() {
   // Handle template selection
   const selectTemplate = async (templateId: string) => {
     try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log('Creating portfolio from template ID:', templateId);
+      
       // Create a new portfolio based on the selected template
-      const newPortfolio = await portfolioApi.create({
+      const portfolioData: {
+        title: string;
+        description: string;
+        template: string;
+        sections: any[];
+        theme: {
+          mode: 'light' | 'dark';
+          primaryColor: string;
+          secondaryColor: string;
+          fontFamily: string;
+          fontSize: string;
+        };
+        isPublished: boolean;
+        userId: string;
+      } = {
         title: 'New Portfolio',
         description: 'Created from template',
         template: templateId,
-        isPublished: false
-      });
+        // Add empty sections array to satisfy validation
+        sections: [],
+        // Add basic theme to satisfy validation
+        theme: {
+          mode: 'light',
+          primaryColor: '#3490dc',
+          secondaryColor: '#ffed4a',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '16px'
+        },
+        isPublished: false,
+        userId: 'demo-user' // In a real app, this would come from authentication
+      };
+      
+      console.log('Sending portfolio data:', portfolioData);
+      
+      const newPortfolio = await portfolioApi.create(portfolioData);
+      
+      console.log('New portfolio created:', newPortfolio);
       
       // Navigate to the editor with the new portfolio ID
       navigate(`/editor?id=${newPortfolio.id}`);
     } catch (err) {
       console.error('Failed to create portfolio from template:', err);
       setError('Failed to create portfolio from template. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -204,8 +240,8 @@ export default function Templates() {
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                       {template.sections.map(section => (
                         <Chip 
-                          key={section} 
-                          label={section.charAt(0).toUpperCase() + section.slice(1)}
+                          key={section.id} 
+                          label={section.type.charAt(0).toUpperCase() + section.type.slice(1)}
                           size="small"
                           variant="outlined"
                         />
@@ -217,7 +253,11 @@ export default function Templates() {
                       variant="outlined" 
                       size="small"
                       fullWidth
-                      onClick={() => window.open(`/preview?template=${template.id}`, '_blank')}
+                      onClick={() => {
+                        console.log('Navigating to preview with template ID:', template.id);
+                        // Use window.location instead of navigate for query parameters
+                        window.location.href = `/preview?template=${template.id}`;
+                      }}
                     >
                       Preview
                     </Button>

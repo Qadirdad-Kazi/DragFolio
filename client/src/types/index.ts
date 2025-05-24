@@ -53,10 +53,12 @@ export interface Template {
   category: string;
   description: string;
   thumbnail: string;
-  sections: string[];
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
+  sections: PortfolioSection[];
+  theme: PortfolioTheme;
+  isPublic: boolean;
+  isFeatured?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Define user data
