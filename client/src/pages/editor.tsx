@@ -144,12 +144,35 @@ export default function Editor() {
     }));
   };
 
-  // Update portfolio theme
+  // Update theme
   const updateTheme = (updates: Partial<PortfolioTheme>) => {
+    // Create a new theme object with the updates
+    const updatedTheme = {
+      ...portfolio.theme,
+      ...updates
+    };
+    
+    // Update the portfolio state with the new theme
     setPortfolio(prev => ({
       ...prev,
-      theme: { ...prev.theme, ...updates }
+      theme: updatedTheme
     }));
+    
+    // Apply theme changes to the document for global styling
+    document.documentElement.setAttribute('data-theme', updatedTheme.mode);
+    
+    // Update CSS variables for theme colors
+    document.documentElement.style.setProperty('--primary-color', updatedTheme.primaryColor);
+    document.documentElement.style.setProperty('--secondary-color', updatedTheme.secondaryColor);
+    document.documentElement.style.setProperty('--font-family', updatedTheme.fontFamily);
+    document.documentElement.style.setProperty('--font-size', updatedTheme.fontSize);
+    
+    // Save theme changes to localStorage for persistence
+    try {
+      localStorage.setItem('dragfolio-theme', JSON.stringify(updatedTheme));
+    } catch (error) {
+      console.error('Failed to save theme to localStorage:', error);
+    }
   };
 
   // Update portfolio details
@@ -197,21 +220,63 @@ export default function Editor() {
   // Export portfolio as HTML/ZIP
   const exportPortfolio = async () => {
     try {
-      if (!portfolioId) {
+      setIsSaving(true);
+      let idToExport = portfolioId;
+      
+      if (!idToExport) {
         // Save first if this is a new portfolio
         const savedPortfolio = await savePortfolio();
-        window.location.href = `/api/portfolios/${savedPortfolio.id}/export`;
-      } else {
-        window.location.href = `/api/portfolios/${portfolioId}/export`;
+        idToExport = savedPortfolio.id;
       }
+      
+      // Create a form and submit it to trigger the download
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/api/portfolios/${idToExport}/export`;
+      form.target = '_blank'; // Open in new tab to avoid navigation issues
+      
+      // Add a timestamp to prevent caching issues
+      const timestampInput = document.createElement('input');
+      timestampInput.type = 'hidden';
+      timestampInput.name = 'timestamp';
+      timestampInput.value = Date.now().toString();
+      form.appendChild(timestampInput);
+      
+      // Add CSRF token if needed
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_csrf';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+      }
+      
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      
+      toast({
+        title: 'Export Started',
+        description: 'Your portfolio export has started. The download will begin shortly.',
+        variant: 'default',
+      });
     } catch (error) {
       console.error('Error exporting portfolio:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'There was an error exporting your portfolio. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   // Deploy portfolio to subdomain
   const deployPortfolio = async (subdomain: string) => {
     try {
+      setIsSaving(true);
       let portfolioIdToUse = portfolioId;
       
       if (!portfolioIdToUse) {
@@ -219,39 +284,35 @@ export default function Editor() {
         portfolioIdToUse = savedPortfolio.id;
       }
       
-      const response = await fetch(`/api/portfolios/${portfolioIdToUse}/deploy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ subdomain })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to deploy portfolio');
-      }
-      
-      const data = await response.json();
+      // Use the API service instead of direct fetch
+      const data = await portfolioApi.deploy(portfolioIdToUse, subdomain);
       
       toast({
         title: 'Success',
-        description: `Portfolio deployed to ${data.url}`,
+        description: `Portfolio deployed to ${data.url || 'your custom subdomain'}`,
+        variant: 'default',
       });
+      
+      // Update the portfolio with the new subdomain if it changed
+      if (portfolio.subdomain !== subdomain) {
+        updatePortfolioDetails({ subdomain });
+      }
       
       return data;
     } catch (error) {
       console.error('Error deploying portfolio:', error);
       toast({
         title: 'Error',
-        description: 'Failed to deploy portfolio. Please try again.',
-        variant: 'destructive'
+        description: 'Failed to deploy portfolio. Please check if the subdomain is available.',
+        variant: 'destructive',
       });
       throw error;
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Note: getDefaultTitle and getDefaultContent are now imported from utils.ts
-
+  // Show loading spinner while data is being fetched
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -262,40 +323,95 @@ export default function Editor() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="editor-layout">
-        {/* Left Sidebar */}
-        <EditorSidebar 
-          addSection={addSection} 
-          portfolio={portfolio}
-          selectedSection={selectedSection}
-          setSelectedSection={setSelectedSection}
-          reorderSections={reorderSections}
-          removeSection={removeSection}
-          savePortfolio={savePortfolio}
-          exportPortfolio={exportPortfolio}
-          deployPortfolio={deployPortfolio}
-          isSaving={isSaving}
-        />
+      <div className="editor-layout flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+        {/* Header with actions */}
+        <div className="fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 z-10">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate">
+              {portfolio.title || 'Untitled Portfolio'}
+            </h1>
+            {isSaving && (
+              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary mr-2"></div>
+                Saving...
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={savePortfolio}
+              disabled={isSaving}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+            
+            <button
+              onClick={exportPortfolio}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Export
+            </button>
+            
+            <button
+              onClick={() => deployPortfolio(portfolio.subdomain || `portfolio-${Date.now()}`)}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              Publish
+            </button>
+          </div>
+        </div>
         
-        {/* Main Canvas */}
-        <EditorCanvas 
-          portfolio={portfolio}
-          selectedSection={selectedSection}
-          setSelectedSection={setSelectedSection}
-          updateSection={updateSection}
-          previewDevice={previewDevice}
-        />
-        
-        {/* Right Settings Panel */}
-        <EditorSettings 
-          portfolio={portfolio}
-          selectedSection={selectedSection}
-          updateSection={updateSection}
-          updateTheme={updateTheme}
-          updatePortfolioDetails={updatePortfolioDetails}
-          previewDevice={previewDevice}
-          setPreviewDevice={setPreviewDevice}
-        />
+        {/* Main content area with sidebar and canvas */}
+        <div className="flex w-full h-full pt-14">
+          {/* Left Sidebar */}
+          <div className="w-64 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800">
+            <EditorSidebar 
+              addSection={addSection} 
+              portfolio={portfolio}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              reorderSections={reorderSections}
+              removeSection={removeSection}
+              savePortfolio={savePortfolio}
+              exportPortfolio={exportPortfolio}
+              deployPortfolio={deployPortfolio}
+              isSaving={isSaving}
+            />
+          </div>
+          
+          {/* Main Canvas */}
+          <div className="flex-1 h-full overflow-y-auto">
+            <EditorCanvas 
+              portfolio={portfolio}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              updateSection={updateSection}
+              previewDevice={previewDevice}
+            />
+          </div>
+          
+          {/* Right Settings Panel */}
+          <div className="w-80 border-l border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800">
+            <EditorSettings 
+              portfolio={portfolio}
+              selectedSection={selectedSection}
+              updateSection={updateSection}
+              updateTheme={updateTheme}
+              updatePortfolioDetails={updatePortfolioDetails}
+              previewDevice={previewDevice}
+              setPreviewDevice={setPreviewDevice}
+            />
+          </div>
+        </div>
       </div>
     </DndProvider>
   );

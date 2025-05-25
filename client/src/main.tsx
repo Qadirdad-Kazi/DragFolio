@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-// Remove the non-existent icons import
+import "./styles/theme.css"; // Import theme styles
 
 createRoot(document.getElementById("root")!).render(<App />);

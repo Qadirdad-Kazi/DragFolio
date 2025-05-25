@@ -1,0 +1,71 @@
+:root {
+  --primary-color: #3490dc;
+  --secondary-color: #ffed4a;
+  --heading-color: #000000;
+  --paragraph-color: #333333;
+  --link-color: #3490dc;
+  --accent-color: #ffed4a;
+  --font-family: 'Inter, sans-serif';
+  --font-size: '16px';
+  --line-height: '1.5';
+  --letter-spacing: '0';
+  --text-transform: 'none';
+  --heading-font-family: 'Inter, sans-serif';
+  --heading-font-weight: 'bold';
+  --border-radius: '4px';
+  --spacing: 'comfortable';
+}
+
+[data-theme='light'] {
+  --background-color: #f5f5f5;
+  --paper-color: #ffffff;
+  --text-color: #121212;
+  --text-secondary-color: #666666;
+  --border-color: #e0e0e0;
+  --heading-color: #000000;
+  --paragraph-color: #333333;
+}
+
+[data-theme='dark'] {
+  --background-color: #121212;
+  --paper-color: #1e1e1e;
+  --text-color: #ffffff;
+  --text-secondary-color: #aaaaaa;
+  --border-color: #333333;
+  --heading-color: #ffffff;
+  --paragraph-color: #cccccc;
+}
+
+/* Apply theme variables to elements */
+.portfolio-section {
+  background-color: var(--paper-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+  font-family: var(--font-family);
+  border-radius: var(--border-radius);
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.border-primary {
+  border-color: var(--primary-color) !important;
+}
+
+.text-secondary {
+  color: var(--secondary-color) !important;
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color) !important;
+}
+
+.border-secondary {
+  border-color: var(--secondary-color) !important;
+}

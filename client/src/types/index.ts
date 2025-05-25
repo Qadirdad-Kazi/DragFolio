@@ -20,8 +20,17 @@ export interface PortfolioTheme {
   mode: 'light' | 'dark';
   primaryColor: string;
   secondaryColor: string;
+  headingColor?: string;
+  paragraphColor?: string;
+  linkColor?: string;
+  accentColor?: string;
   fontFamily: string;
   fontSize: string;
+  lineHeight?: string;
+  letterSpacing?: string;
+  textTransform?: string;
+  headingFontFamily?: string;
+  headingFontWeight?: string;
   borderRadius?: string;
   spacing?: 'compact' | 'comfortable' | 'spacious';
 }

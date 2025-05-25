@@ -181,16 +181,28 @@ export default function Dashboard() {
 
   // Handle delete portfolio
   const handleDeletePortfolio = async () => {
-    if (!portfolioToDelete || !portfolioToDelete.id) return;
+    if (!portfolioToDelete || !portfolioToDelete.id) {
+      console.error('No valid portfolio provided for deletion');
+      setError('Cannot delete portfolio: Invalid portfolio data');
+      return;
+    }
     
     setIsLoadingAction(true);
     setError(null);
     
     try {
+      console.log('Deleting portfolio with ID:', portfolioToDelete.id);
+      
+      // Use the API service to delete the portfolio
       await portfolioApi.delete(portfolioToDelete.id);
+      
+      // Update the local state to remove the deleted portfolio
       setPortfolios(portfolios.filter(p => p.id !== portfolioToDelete.id));
       setIsDeleteDialogOpen(false);
       setPortfolioToDelete(null);
+      
+      // Show success message
+      setError(null);
     } catch (err) {
       console.error('Failed to delete portfolio:', err);
       setError('Failed to delete portfolio. Please try again.');
@@ -201,16 +213,32 @@ export default function Dashboard() {
 
   // Handle edit portfolio
   const handleEditPortfolio = (portfolioId: string | undefined) => {
-    if (!portfolioId) return;
+    if (!portfolioId) {
+      console.error('No portfolio ID provided for editing');
+      setError('Cannot edit portfolio: No ID provided');
+      return;
+    }
+    console.log('Navigating to editor with portfolio ID:', portfolioId);
     navigate(`/editor?id=${portfolioId}`);
   };
 
   // Handle view portfolio
   const handleViewPortfolio = (portfolio: Portfolio) => {
+    if (!portfolio || !portfolio.id) {
+      console.error('No valid portfolio provided for viewing');
+      setError('Cannot view portfolio: Invalid portfolio data');
+      return;
+    }
+    
+    console.log('Viewing portfolio:', portfolio.id, portfolio.isPublished);
+    
     if (portfolio.isPublished && portfolio.subdomain) {
+      // For published portfolios with a subdomain, open in a new tab
       window.open(`https://${portfolio.subdomain}.dragfolio.io`, '_blank');
     } else {
-      navigate(`/preview?id=${portfolio.id || ''}`);
+      // For drafts, navigate to the preview page
+      console.log('Navigating to preview with portfolio ID:', portfolio.id);
+      navigate(`/preview?id=${portfolio.id}`);
     }
   };
 
@@ -246,7 +274,7 @@ export default function Dashboard() {
         
         <Grid container spacing={3}>
           {/* Left sidebar with stats */}
-          <Grid item xs={12} md={4}>
+          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
             <Card elevation={2}>
               <CardHeader 
                 title={`Welcome, ${user?.name}`}
@@ -295,7 +323,7 @@ export default function Dashboard() {
           </Grid>
           
           {/* Main content with portfolio list */}
-          <Grid item xs={12} md={8}>
+          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 8' } }}>
             <Card elevation={2}>
               <CardHeader 
                 title="Your Portfolios"
@@ -497,7 +525,7 @@ export default function Dashboard() {
                 </Select>
               ) : (
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid sx={{ gridColumn: 'span 6' }}>
                     <Paper 
                       sx={{
                         p: 2, 
@@ -514,7 +542,7 @@ export default function Dashboard() {
                     </Paper>
                   </Grid>
                   
-                  <Grid item xs={6}>
+                  <Grid sx={{ gridColumn: 'span 6' }}>
                     <Paper 
                       sx={{
                         p: 2, 

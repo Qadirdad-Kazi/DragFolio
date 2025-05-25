@@ -22,6 +22,7 @@ import {
   Tablet as TabletIcon,
   PhoneAndroid as SmartphoneIcon
 } from '@mui/icons-material';
+import ThemeCustomizer from './ThemeCustomizer';
 
 interface EditorSettingsProps {
   portfolio: Portfolio;
@@ -71,30 +72,7 @@ export default function EditorSettings({
     }
   };
 
-  // Handle theme mode change
-  const handleThemeModeChange = (mode: 'light' | 'dark') => {
-    updateTheme({ mode });
-  };
-
-  // Handle primary color change
-  const handlePrimaryColorChange = (primaryColor: string) => {
-    updateTheme({ primaryColor });
-  };
-
-  // Handle secondary color change
-  const handleSecondaryColorChange = (secondaryColor: string) => {
-    updateTheme({ secondaryColor });
-  };
-
-  // Handle font family change
-  const handleFontFamilyChange = (fontFamily: string) => {
-    updateTheme({ fontFamily });
-  };
-
-  // Handle font size change
-  const handleFontSizeChange = (fontSize: string) => {
-    updateTheme({ fontSize });
-  };
+  // Theme updates are now handled by the ThemeCustomizer component
 
   // Handle portfolio title change
   const handlePortfolioTitleChange = (title: string) => {
@@ -251,121 +229,34 @@ export default function EditorSettings({
       {/* Theme Settings */}
       <Box role="tabpanel" hidden={activeTab !== 2} sx={{ mb: 3 }}>
         {activeTab === 2 && (
-          <Stack spacing={3}>
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>Theme Mode</Typography>
-              <FormControl fullWidth size="small">
-                <InputLabel id="theme-mode-label">Theme Mode</InputLabel>
-                <Select
-                  labelId="theme-mode-label"
-                  value={portfolio.theme.mode}
-                  onChange={(e) => handleThemeModeChange(e.target.value as 'light' | 'dark')}
-                  label="Theme Mode"
-                >
-                  <MenuItem value="light">Light</MenuItem>
-                  <MenuItem value="dark">Dark</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>Primary Color</Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Box 
-                  sx={{ 
-                    width: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    border: 1, 
-                    borderColor: 'divider',
-                    bgcolor: portfolio.theme.primaryColor 
-                  }}
-                />
-                <TextField
-                  type="color"
-                  value={portfolio.theme.primaryColor}
-                  onChange={(e) => handlePrimaryColorChange(e.target.value)}
-                  sx={{ width: 64, p: 0 }}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
-                  value={portfolio.theme.primaryColor}
-                  onChange={(e) => handlePrimaryColorChange(e.target.value)}
-                  size="small"
-                />
-              </Box>
-            </Box>
-            
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>Secondary Color</Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Box 
-                  sx={{ 
-                    width: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    border: 1, 
-                    borderColor: 'divider',
-                    bgcolor: portfolio.theme.secondaryColor 
-                  }}
-                />
-                <TextField
-                  type="color"
-                  value={portfolio.theme.secondaryColor}
-                  onChange={(e) => handleSecondaryColorChange(e.target.value)}
-                  sx={{ width: 64, p: 0 }}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
-                  value={portfolio.theme.secondaryColor}
-                  onChange={(e) => handleSecondaryColorChange(e.target.value)}
-                  size="small"
-                />
-              </Box>
-            </Box>
-            
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>Font Family</Typography>
-              <FormControl fullWidth size="small">
-                <InputLabel id="font-family-label">Font Family</InputLabel>
-                <Select
-                  labelId="font-family-label"
-                  value={portfolio.theme.fontFamily}
-                  onChange={(e) => handleFontFamilyChange(e.target.value)}
-                  label="Font Family"
-                >
-                  <MenuItem value="Inter, sans-serif">Inter</MenuItem>
-                  <MenuItem value="Roboto, sans-serif">Roboto</MenuItem>
-                  <MenuItem value="Montserrat, sans-serif">Montserrat</MenuItem>
-                  <MenuItem value="Poppins, sans-serif">Poppins</MenuItem>
-                  <MenuItem value="Open Sans, sans-serif">Open Sans</MenuItem>
-                  <MenuItem value="Lato, sans-serif">Lato</MenuItem>
-                  <MenuItem value="Playfair Display, serif">Playfair Display</MenuItem>
-                  <MenuItem value="Merriweather, serif">Merriweather</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>Base Font Size</Typography>
-              <FormControl fullWidth size="small">
-                <InputLabel id="font-size-label">Font Size</InputLabel>
-                <Select
-                  labelId="font-size-label"
-                  value={portfolio.theme.fontSize}
-                  onChange={(e) => handleFontSizeChange(e.target.value)}
-                  label="Font Size"
-                >
-                  <MenuItem value="14px">Small (14px)</MenuItem>
-                  <MenuItem value="16px">Medium (16px)</MenuItem>
-                  <MenuItem value="18px">Large (18px)</MenuItem>
-                  <MenuItem value="20px">Extra Large (20px)</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </Stack>
+          <ThemeCustomizer
+            theme={{
+              mode: portfolio.theme.mode,
+              primaryColor: portfolio.theme.primaryColor,
+              secondaryColor: portfolio.theme.secondaryColor,
+              headingColor: portfolio.theme.headingColor,
+              paragraphColor: portfolio.theme.paragraphColor,
+              linkColor: portfolio.theme.linkColor,
+              accentColor: portfolio.theme.accentColor,
+              fontFamily: portfolio.theme.fontFamily,
+              fontSize: portfolio.theme.fontSize,
+              lineHeight: portfolio.theme.lineHeight,
+              letterSpacing: portfolio.theme.letterSpacing,
+              textTransform: portfolio.theme.textTransform,
+              headingFontFamily: portfolio.theme.headingFontFamily,
+              headingFontWeight: portfolio.theme.headingFontWeight,
+              borderRadius: portfolio.theme.borderRadius || '4px',
+              spacing: (portfolio.theme.spacing as 'compact' | 'comfortable' | 'spacious') || 'comfortable'
+            }}
+            onThemeChange={(themeOptions) => {
+              // Convert spacing to the correct type before updating
+              const updatedTheme: Partial<PortfolioTheme> = {
+                ...themeOptions,
+                spacing: themeOptions.spacing as 'compact' | 'comfortable' | 'spacious' | undefined
+              };
+              updateTheme(updatedTheme);
+            }}
+          />
         )}
       </Box>
     </Box>

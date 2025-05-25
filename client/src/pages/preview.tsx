@@ -20,61 +20,72 @@ export default function TemplatePreview() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Directly extract the template ID from the URL
-  const getTemplateId = () => {
+  // Extract IDs from the URL
+  const getIds = () => {
     try {
       // Log the full location to help debug
       console.log('Current location:', location);
       
-      // Extract the query string
-      const queryString = location.includes('?') ? location.split('?')[1] : '';
-      console.log('Query string:', queryString);
+      // In Wouter, location is just the pathname without query params
+      // So we need to use window.location.search to get the query string
+      const queryString = window.location.search;
+      console.log('Query string from window.location.search:', queryString);
       
       // Parse the query parameters
       const searchParams = new URLSearchParams(queryString);
       
-      // Get the template ID
-      const id = searchParams.get('template');
-      console.log('Extracted template ID:', id);
+      // Get the template ID or portfolio ID
+      const templateId = searchParams.get('template');
+      const portfolioId = searchParams.get('id');
       
-      return id || '';
+      console.log('Extracted template ID:', templateId);
+      console.log('Extracted portfolio ID:', portfolioId);
+      
+      return { templateId: templateId || '', portfolioId: portfolioId || '' };
     } catch (err) {
-      console.error('Error extracting template ID:', err);
-      return '';
+      console.error('Error extracting IDs:', err);
+      return { templateId: '', portfolioId: '' };
     }
   };
 
-  const templateId = getTemplateId();
+  const { templateId, portfolioId } = getIds();
   
-  // Fetch template when component mounts
+  // Fetch template or portfolio when component mounts
   useEffect(() => {
-    console.log('Template ID from URL:', templateId);
+    console.log('IDs from URL - Template:', templateId, 'Portfolio:', portfolioId);
     
-    if (!templateId) {
-      setError('No template ID provided');
+    if (!templateId && !portfolioId) {
+      setError('No template or portfolio ID provided');
       setIsLoading(false);
       return;
     }
     
-    // Debug the API call
-    console.log('Fetching template with ID:', templateId);
-
-    const fetchTemplate = async () => {
+    const fetchData = async () => {
       try {
-        console.log('Making API call to fetch template with ID:', templateId);
-        const data = await templateApi.getById(templateId);
-        console.log('Template data received:', data);
-        setTemplate(data);
+        // If we have a portfolio ID, fetch the portfolio for preview
+        if (portfolioId) {
+          console.log('Making API call to fetch portfolio with ID:', portfolioId);
+          const data = await fetch(`/api/portfolios/${portfolioId}`).then(res => res.json());
+          console.log('Portfolio data received:', data);
+          setTemplate(data);
+        } 
+        // Otherwise, fetch the template
+        else if (templateId) {
+          console.log('Making API call to fetch template with ID:', templateId);
+          const data = await templateApi.getById(templateId);
+          console.log('Template data received:', data);
+          setTemplate(data);
+        }
       } catch (error) {
-        console.error('Error fetching template:', error);
-        setError('Failed to load template. Error: ' + (error instanceof Error ? error.message : String(error)));
+        console.error('Error fetching data:', error);
+        setError('Failed to load data. Error: ' + (error instanceof Error ? error.message : String(error)));
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchTemplate();
-  }, [templateId]);
+    fetchData();
+  }, [templateId, portfolioId]);
 
   // Handle back button click
   const handleBack = () => {

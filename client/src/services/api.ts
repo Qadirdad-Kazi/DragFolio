@@ -1,14 +1,35 @@
 import { Portfolio, Template, Section, Theme } from '@/types';
 
+// Determine the base API URL dynamically with auto-detection
+const determineApiUrl = () => {
+  // Check if we're in production (deployed) or development
+  const isProd = import.meta.env.PROD;
+  
+  // If in production, use relative URL to avoid hardcoding domains
+  if (isProd) {
+    return '/api';
+  }
+  
+  // In development, use the /api prefix that will be handled by Vite's proxy
+  // This allows the port to be auto-detected by the Vite proxy configuration
+  return '/api';
+};
+
 // Base API URL
-const API_URL = 'http://localhost:3001/api';
+const API_URL = determineApiUrl();
 console.log('Using API URL:', API_URL);
 
 // Helper to get the auth token
 const getToken = () => localStorage.getItem('token');
 
-// Helper for API requests
-const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+// Maximum number of retries for API requests
+const MAX_RETRIES = 2;
+
+// Retry delay in milliseconds (increases with each retry)
+const RETRY_DELAY = 1000;
+
+// Helper for API requests with retry logic
+const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCount = 0) => {
   const token = getToken();
   
   const headers = {
@@ -26,17 +47,46 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
       headers,
       // Add cache control to prevent caching issues
       cache: 'no-cache',
+      // Add credentials to support cookies for session-based auth
+      credentials: 'include',
     });
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error(`API request failed: ${url}`, errorData);
-      throw new Error(errorData.message || 'API request failed');
+      
+      // Check if we should retry (server errors 5xx or network issues)
+      if (retryCount < MAX_RETRIES && (response.status >= 500 || response.status === 0)) {
+        console.log(`Retrying request (${retryCount + 1}/${MAX_RETRIES})...`);
+        
+        // Exponential backoff: wait longer with each retry
+        const delay = RETRY_DELAY * Math.pow(2, retryCount);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Retry the request
+        return apiRequest(endpoint, options, retryCount + 1);
+      }
+      
+      throw new Error(errorData.message || `API request failed with status ${response.status}`);
     }
     
+    // For successful responses, parse and return the JSON
     return response.json();
   } catch (error) {
     console.error(`API request error for ${url}:`, error);
+    
+    // Retry on network errors if we haven't exceeded max retries
+    if (retryCount < MAX_RETRIES && error instanceof TypeError) {
+      console.log(`Network error, retrying request (${retryCount + 1}/${MAX_RETRIES})...`);
+      
+      // Exponential backoff
+      const delay = RETRY_DELAY * Math.pow(2, retryCount);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      // Retry the request
+      return apiRequest(endpoint, options, retryCount + 1);
+    }
+    
     throw error;
   }
 };
@@ -65,9 +115,19 @@ export const portfolioApi = {
   }),
   
   // Delete a portfolio
-  delete: (id: string) => apiRequest(`/portfolios/${id}`, {
-    method: 'DELETE',
-  }),
+  delete: async (id: string) => {
+    try {
+      console.log('Deleting portfolio with ID:', id);
+      const result = await apiRequest(`/portfolios/${id}`, {
+        method: 'DELETE',
+      });
+      console.log('Portfolio deleted successfully:', id);
+      return result;
+    } catch (error) {
+      console.error(`Error deleting portfolio ${id}:`, error);
+      throw error;
+    }
+  },
   
   // Update portfolio sections
   updateSections: (id: string, sections: Section[]) => apiRequest(`/portfolios/${id}/sections`, {
@@ -93,33 +153,151 @@ export const portfolioApi = {
   }),
 };
 
-// Template API
+// Template cache to avoid unnecessary API calls
+let templateCache: { templates: Template[] | null; timestamp: number } = { templates: null, timestamp: 0 };
+
+// Cache expiration time in milliseconds (5 minutes)
+const CACHE_EXPIRATION = 5 * 60 * 1000;
+
+// Template API with caching
 export const templateApi = {
-  // Get all templates
-  getAll: () => apiRequest('/templates'),
+  // Get all templates with caching
+  getAll: async () => {
+    // Check if we have a valid cache
+    const now = Date.now();
+    if (templateCache.templates && (now - templateCache.timestamp) < CACHE_EXPIRATION) {
+      console.log('Using cached templates');
+      return templateCache.templates;
+    }
+    
+    try {
+      // Fetch fresh data
+      console.log('Fetching fresh templates from API');
+      const templates = await apiRequest('/templates');
+      
+      // Update cache
+      templateCache = { templates, timestamp: now };
+      return templates;
+    } catch (error) {
+      // If we have a cache but it's expired, still use it on error
+      if (templateCache.templates) {
+        console.warn('Failed to fetch fresh templates, using expired cache');
+        return templateCache.templates;
+      }
+      // No cache available, rethrow the error
+      throw error;
+    }
+  },
   
-  // Get templates by category
-  getByCategory: (category: string) => apiRequest(`/templates?category=${category}`),
+  // Force refresh the template cache
+  refreshCache: async () => {
+    console.log('Forcing template cache refresh');
+    templateCache = { templates: null, timestamp: 0 };
+    return templateApi.getAll();
+  },
   
-  // Get a specific template
-  getById: (id: string) => apiRequest(`/templates/${id}`),
+  // Get templates by category with caching
+  getByCategory: async (category: string) => {
+    const templates = await templateApi.getAll();
+    return templates.filter((template: Template) => template.category === category);
+  },
+  
+  // Get a specific template with caching and enhanced error handling
+  getById: async (id: string): Promise<Template> => {
+    if (!id) {
+      console.error('Invalid template ID provided:', id);
+      throw new Error('Invalid template ID: Template ID is required');
+    }
+    
+    console.log(`Fetching template with ID: ${id}`);
+    
+    // Try to find in cache first
+    if (templateCache.templates) {
+      console.log('Checking template cache...');
+      const cachedTemplate = templateCache.templates.find((t: Template) => t.id === id);
+      if (cachedTemplate) {
+        console.log('Template found in cache:', cachedTemplate.name);
+        return cachedTemplate;
+      }
+      console.log('Template not found in cache, fetching from API');
+    } else {
+      console.log('Template cache empty, fetching from API');
+    }
+    
+    try {
+      // If not in cache or cache is empty, fetch from API
+      const template = await apiRequest(`/templates/${id}`);
+      
+      if (!template) {
+        throw new Error(`Template with ID ${id} not found`);
+      }
+      
+      console.log('Template fetched successfully:', template.name);
+      
+      // Update the cache with this single template if we have a cache already
+      if (templateCache.templates) {
+        // Find the index of the template in the cache if it exists
+        const existingIndex = templateCache.templates.findIndex((t: Template) => t.id === id);
+        
+        // Create a new array to avoid mutating the original
+        const updatedTemplates = [...templateCache.templates];
+        
+        if (existingIndex >= 0) {
+          // Replace the existing template
+          updatedTemplates[existingIndex] = template;
+        } else {
+          // Add the new template
+          updatedTemplates.push(template);
+        }
+        
+        // Update the cache with the new array
+        templateCache = { 
+          templates: updatedTemplates, 
+          timestamp: templateCache.timestamp // Keep the original timestamp
+        };
+      }
+      
+      return template;
+    } catch (error) {
+      console.error(`Error fetching template with ID ${id}:`, error);
+      throw new Error(`Failed to fetch template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
   
   // Create a new template (admin only)
-  create: (data: Partial<Template>) => apiRequest('/templates', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
+  create: async (data: Partial<Template>) => {
+    const newTemplate = await apiRequest('/templates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    // Invalidate cache after creating
+    templateCache = { templates: null, timestamp: 0 };
+    return newTemplate;
+  },
   
   // Update a template (admin only)
-  update: (id: string, data: Partial<Template>) => apiRequest(`/templates/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
+  update: async (id: string, data: Partial<Template>) => {
+    const updatedTemplate = await apiRequest(`/templates/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    
+    // Invalidate cache after updating
+    templateCache = { templates: null, timestamp: 0 };
+    return updatedTemplate;
+  },
   
   // Delete a template (admin only)
-  delete: (id: string) => apiRequest(`/templates/${id}`, {
-    method: 'DELETE',
-  }),
+  delete: async (id: string) => {
+    const result = await apiRequest(`/templates/${id}`, {
+      method: 'DELETE',
+    });
+    
+    // Invalidate cache after deleting
+    templateCache = { templates: null, timestamp: 0 };
+    return result;
+  },
 };
 
 // User API

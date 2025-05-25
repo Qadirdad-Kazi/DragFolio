@@ -1,4 +1,4 @@
-import React, { useState, SyntheticEvent } from 'react';
+import { useState, SyntheticEvent } from 'react';
 import {
   Box,
   Typography,
@@ -13,12 +13,10 @@ import {
   Switch,
   Button,
   Paper,
-  Grid,
   Divider,
   Stack,
-  Card,
-  CardContent,
-  Link
+  Link,
+  Grid
 } from '@mui/material';
 import {
   Check as CheckIcon,
@@ -34,8 +32,17 @@ interface ThemeOptions {
   mode: 'light' | 'dark';
   primaryColor: string;
   secondaryColor: string;
+  headingColor?: string;
+  paragraphColor?: string;
+  linkColor?: string;
+  accentColor?: string;
   fontFamily: string;
   fontSize: string;
+  lineHeight?: string;
+  letterSpacing?: string;
+  textTransform?: string;
+  headingFontFamily?: string;
+  headingFontWeight?: string;
   borderRadius: string;
   spacing: string;
 }
@@ -47,21 +54,69 @@ interface ThemeCustomizerProps {
 
 // Font options
 const FONT_FAMILIES = [
-  { value: 'Inter, sans-serif', label: 'Inter' },
-  { value: 'Roboto, sans-serif', label: 'Roboto' },
-  { value: 'Poppins, sans-serif', label: 'Poppins' },
-  { value: 'Montserrat, sans-serif', label: 'Montserrat' },
-  { value: 'Open Sans, sans-serif', label: 'Open Sans' },
-  { value: 'Lato, sans-serif', label: 'Lato' },
-  { value: 'Playfair Display, serif', label: 'Playfair Display' },
-  { value: 'Merriweather, serif', label: 'Merriweather' }
+  // Sans-serif fonts
+  { value: 'Inter, sans-serif', label: 'Inter', category: 'sans-serif' },
+  { value: 'Roboto, sans-serif', label: 'Roboto', category: 'sans-serif' },
+  { value: 'Poppins, sans-serif', label: 'Poppins', category: 'sans-serif' },
+  { value: 'Montserrat, sans-serif', label: 'Montserrat', category: 'sans-serif' },
+  { value: 'Open Sans, sans-serif', label: 'Open Sans', category: 'sans-serif' },
+  { value: 'Lato, sans-serif', label: 'Lato', category: 'sans-serif' },
+  { value: 'Raleway, sans-serif', label: 'Raleway', category: 'sans-serif' },
+  { value: 'Nunito, sans-serif', label: 'Nunito', category: 'sans-serif' },
+  { value: 'Work Sans, sans-serif', label: 'Work Sans', category: 'sans-serif' },
+  { value: 'Quicksand, sans-serif', label: 'Quicksand', category: 'sans-serif' },
+  
+  // Serif fonts
+  { value: 'Playfair Display, serif', label: 'Playfair Display', category: 'serif' },
+  { value: 'Merriweather, serif', label: 'Merriweather', category: 'serif' },
+  { value: 'Lora, serif', label: 'Lora', category: 'serif' },
+  { value: 'Libre Baskerville, serif', label: 'Libre Baskerville', category: 'serif' },
+  { value: 'Crimson Text, serif', label: 'Crimson Text', category: 'serif' },
+  { value: 'Cormorant Garamond, serif', label: 'Cormorant Garamond', category: 'serif' },
+  
+  // Monospace fonts
+  { value: 'Roboto Mono, monospace', label: 'Roboto Mono', category: 'monospace' },
+  { value: 'Source Code Pro, monospace', label: 'Source Code Pro', category: 'monospace' },
+  { value: 'Fira Code, monospace', label: 'Fira Code', category: 'monospace' },
+  
+  // Display fonts
+  { value: '"Abril Fatface", cursive', label: 'Abril Fatface', category: 'display' },
+  { value: '"Bebas Neue", cursive', label: 'Bebas Neue', category: 'display' },
+  { value: '"Pacifico", cursive', label: 'Pacifico', category: 'display' }
 ];
 
 // Font size options
 const FONT_SIZES = [
+  { value: '12px', label: 'Extra Small' },
   { value: '14px', label: 'Small' },
   { value: '16px', label: 'Medium' },
-  { value: '18px', label: 'Large' }
+  { value: '18px', label: 'Large' },
+  { value: '20px', label: 'Extra Large' },
+  { value: '24px', label: 'Huge' }
+];
+
+// Line height options
+const LINE_HEIGHTS = [
+  { value: '1.2', label: 'Tight' },
+  { value: '1.5', label: 'Normal' },
+  { value: '1.8', label: 'Relaxed' },
+  { value: '2', label: 'Loose' }
+];
+
+// Letter spacing options
+const LETTER_SPACINGS = [
+  { value: '-0.05em', label: 'Tight' },
+  { value: '0', label: 'Normal' },
+  { value: '0.05em', label: 'Wide' },
+  { value: '0.1em', label: 'Extra Wide' }
+];
+
+// Text transform options
+const TEXT_TRANSFORMS = [
+  { value: 'none', label: 'None' },
+  { value: 'uppercase', label: 'UPPERCASE' },
+  { value: 'lowercase', label: 'lowercase' },
+  { value: 'capitalize', label: 'Capitalize' }
 ];
 
 // Border radius options
@@ -150,9 +205,9 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
           <Stack spacing={3}>
             <Box>
               <Typography variant="subtitle2" gutterBottom>Color Presets</Typography>
-              <Grid container spacing={1}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
                 {COLOR_PRESETS.map((preset, index) => (
-                  <Grid item xs={4} key={index}>
+                  <Box key={index}>
                     <Button
                       variant="outlined"
                       fullWidth
@@ -175,9 +230,9 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
                     >
                       {preset.name}
                     </Button>
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             </Box>
             
             <Box>
@@ -221,6 +276,98 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
                   fullWidth
                   value={theme.secondaryColor}
                   onChange={(e) => updateTheme('secondaryColor', e.target.value)}
+                  size="small"
+                />
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Heading Color</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Box 
+                  sx={{ 
+                    width: 40, 
+                    height: 40, 
+                    borderRadius: 1, 
+                    border: 1, 
+                    borderColor: 'divider',
+                    bgcolor: theme.headingColor || (theme.mode === 'dark' ? '#ffffff' : '#000000') 
+                  }}
+                />
+                <TextField
+                  type="color"
+                  fullWidth
+                  value={theme.headingColor || (theme.mode === 'dark' ? '#ffffff' : '#000000')}
+                  onChange={(e) => updateTheme('headingColor', e.target.value)}
+                  size="small"
+                />
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Paragraph Color</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Box 
+                  sx={{ 
+                    width: 40, 
+                    height: 40, 
+                    borderRadius: 1, 
+                    border: 1, 
+                    borderColor: 'divider',
+                    bgcolor: theme.paragraphColor || (theme.mode === 'dark' ? '#cccccc' : '#333333') 
+                  }}
+                />
+                <TextField
+                  type="color"
+                  fullWidth
+                  value={theme.paragraphColor || (theme.mode === 'dark' ? '#cccccc' : '#333333')}
+                  onChange={(e) => updateTheme('paragraphColor', e.target.value)}
+                  size="small"
+                />
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Link Color</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Box 
+                  sx={{ 
+                    width: 40, 
+                    height: 40, 
+                    borderRadius: 1, 
+                    border: 1, 
+                    borderColor: 'divider',
+                    bgcolor: theme.linkColor || theme.primaryColor 
+                  }}
+                />
+                <TextField
+                  type="color"
+                  fullWidth
+                  value={theme.linkColor || theme.primaryColor}
+                  onChange={(e) => updateTheme('linkColor', e.target.value)}
+                  size="small"
+                />
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Accent Color</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Box 
+                  sx={{ 
+                    width: 40, 
+                    height: 40, 
+                    borderRadius: 1, 
+                    border: 1, 
+                    borderColor: 'divider',
+                    bgcolor: theme.accentColor || theme.secondaryColor 
+                  }}
+                />
+                <TextField
+                  type="color"
+                  fullWidth
+                  value={theme.accentColor || theme.secondaryColor}
+                  onChange={(e) => updateTheme('accentColor', e.target.value)}
                   size="small"
                 />
               </Box>
@@ -269,6 +416,83 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
                 </Select>
               </FormControl>
             </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Line Height</Typography>
+              <FormControl fullWidth size="small">
+                <InputLabel id="line-height-label">Line Height</InputLabel>
+                <Select
+                  labelId="line-height-label"
+                  value={theme.lineHeight || '1.5'}
+                  onChange={(e) => updateTheme('lineHeight', e.target.value)}
+                  label="Line Height"
+                >
+                  {LINE_HEIGHTS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Letter Spacing</Typography>
+              <FormControl fullWidth size="small">
+                <InputLabel id="letter-spacing-label">Letter Spacing</InputLabel>
+                <Select
+                  labelId="letter-spacing-label"
+                  value={theme.letterSpacing || '0'}
+                  onChange={(e) => updateTheme('letterSpacing', e.target.value)}
+                  label="Letter Spacing"
+                >
+                  {LETTER_SPACINGS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Text Transform</Typography>
+              <FormControl fullWidth size="small">
+                <InputLabel id="text-transform-label">Text Transform</InputLabel>
+                <Select
+                  labelId="text-transform-label"
+                  value={theme.textTransform || 'none'}
+                  onChange={(e) => updateTheme('textTransform', e.target.value)}
+                  label="Text Transform"
+                >
+                  {TEXT_TRANSFORMS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Heading Font Family</Typography>
+              <FormControl fullWidth size="small">
+                <InputLabel id="heading-font-family-label">Heading Font</InputLabel>
+                <Select
+                  labelId="heading-font-family-label"
+                  value={theme.headingFontFamily || theme.fontFamily}
+                  onChange={(e) => updateTheme('headingFontFamily', e.target.value)}
+                  label="Heading Font"
+                >
+                  <MenuItem value="same">Same as Body Font</MenuItem>
+                  {FONT_FAMILIES.map((font) => (
+                    <MenuItem key={font.value} value={font.value}>
+                      <Typography sx={{ fontFamily: font.value }}>{font.label}</Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
             
             <Box>
               <Typography variant="subtitle2" gutterBottom>Preview</Typography>
@@ -277,22 +501,96 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
                 sx={{ 
                   p: 2,
                   fontFamily: theme.fontFamily,
-                  fontSize: theme.fontSize
+                  fontSize: theme.fontSize,
+                  lineHeight: theme.lineHeight || '1.5',
+                  letterSpacing: theme.letterSpacing || '0',
+                  textTransform: theme.textTransform || 'none',
+                  backgroundColor: theme.mode === 'dark' ? '#1e1e1e' : '#ffffff'
                 }}
               >
                 <Typography 
                   variant="h6" 
                   gutterBottom
-                  sx={{ color: theme.primaryColor }}
+                  sx={{ 
+                    color: theme.headingColor || (theme.mode === 'dark' ? '#ffffff' : '#000000'),
+                    fontFamily: theme.headingFontFamily || theme.fontFamily
+                  }}
                 >
                   Sample Heading
                 </Typography>
-                <Typography variant="body1" paragraph>
-                  This is a paragraph of text that demonstrates how your typography settings will look on your portfolio.
+                <Typography 
+                  variant="body1" 
+                  paragraph
+                  sx={{ 
+                    color: theme.paragraphColor || (theme.mode === 'dark' ? '#cccccc' : '#333333')
+                  }}
+                >
+                  This is a paragraph of text that demonstrates how your typography and color settings will look on your portfolio.
                 </Typography>
-                <Link href="#" sx={{ color: theme.secondaryColor }}>
-                  Sample Link
-                </Link>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+                  <Link 
+                    href="#" 
+                    onClick={(e) => e.preventDefault()}
+                    sx={{ 
+                      color: theme.linkColor || theme.primaryColor,
+                      textDecoration: 'underline',
+                      '&:hover': {
+                        opacity: 0.8
+                      }
+                    }}
+                  >
+                    Sample Link
+                  </Link>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{
+                      backgroundColor: theme.primaryColor,
+                      color: '#ffffff',
+                      '&:hover': {
+                        backgroundColor: theme.primaryColor,
+                        opacity: 0.9
+                      },
+                      textTransform: theme.textTransform || 'none'
+                    }}
+                  >
+                    Primary Button
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{
+                      backgroundColor: theme.accentColor || theme.secondaryColor,
+                      color: '#000000',
+                      '&:hover': {
+                        backgroundColor: theme.accentColor || theme.secondaryColor,
+                        opacity: 0.9
+                      },
+                      textTransform: theme.textTransform || 'none'
+                    }}
+                  >
+                    Accent Button
+                  </Button>
+                </Box>
+                <Box 
+                  sx={{ 
+                    p: 1.5, 
+                    borderRadius: theme.borderRadius || '4px',
+                    border: '1px solid',
+                    borderColor: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    backgroundColor: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                  }}
+                >
+                  <Typography 
+                    variant="body2"
+                    sx={{ 
+                      color: theme.paragraphColor || (theme.mode === 'dark' ? '#cccccc' : '#333333'),
+                      opacity: 0.9
+                    }}
+                  >
+                    This is a sample content box showing how your colors work together.
+                  </Typography>
+                </Box>
               </Paper>
             </Box>
           </Stack>
@@ -400,8 +698,8 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
           <Stack spacing={3}>
             <Box>
               <Typography variant="subtitle2" gutterBottom>Theme Mode</Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                <Box>
                   <Paper 
                     variant="outlined"
                     sx={{ 
@@ -432,9 +730,9 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
                       <Box sx={{ height: 12, width: '100%', bgcolor: 'grey.100', borderRadius: 1 }} />
                     </Paper>
                   </Paper>
-                </Grid>
+                </Box>
                 
-                <Grid item xs={6}>
+                <Box>
                   <Paper 
                     variant="outlined"
                     sx={{ 
@@ -466,8 +764,41 @@ export default function ThemeCustomizer({ theme, onThemeChange }: ThemeCustomize
                       <Box sx={{ height: 12, width: '100%', bgcolor: 'grey.700', borderRadius: 1 }} />
                     </Paper>
                   </Paper>
-                </Grid>
-              </Grid>
+                </Box>
+                <Box>
+                  <Paper 
+                    variant="outlined"
+                    sx={{ 
+                      p: 2, 
+                      cursor: 'pointer',
+                      borderColor: theme.mode === 'light' ? 'primary.main' : 'divider',
+                      bgcolor: theme.mode === 'light' ? 'primary.light' : 'background.paper',
+                      '&:hover': { borderColor: 'primary.main' }
+                    }}
+                    onClick={() => updateTheme('mode', 'light')}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <SunIcon fontSize="small" sx={{ mr: 1 }} />
+                        <Typography variant="subtitle2">Light Mode</Typography>
+                      </Box>
+                      {theme.mode === 'light' && <CheckIcon color="primary" fontSize="small" />}
+                    </Box>
+                    <Paper 
+                      variant="outlined" 
+                      sx={{ 
+                        bgcolor: 'grey.100', 
+                        borderColor: 'grey.300',
+                        p: 1.5 
+                      }}
+                    >
+                      <Box sx={{ height: 12, width: 100, bgcolor: 'grey.300', borderRadius: 1, mb: 1 }} />
+                      <Box sx={{ height: 12, width: '100%', bgcolor: 'grey.200', borderRadius: 1, mb: 0.5 }} />
+                      <Box sx={{ height: 12, width: '100%', bgcolor: 'grey.200', borderRadius: 1 }} />
+                    </Paper>
+                  </Paper>
+                </Box>
+              </Box>
             </Box>
             
             <Box>
