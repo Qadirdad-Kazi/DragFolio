@@ -19,10 +19,18 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: `http://localhost:${process.env.PORT || '3001'}`,
         changeOrigin: true,
         secure: false,
       }
+    },
+    headers: {
+      'Content-Security-Policy': `
+        script-src 'self' https://replit.com https://replit.com/public/js/replit-dev-banner.js;
+        img-src 'self' https://images.unsplash.com;
+        default-src 'self';
+        connect-src 'self' http://localhost:${process.env.VITE_API_PORT || '3002'};
+      `
     }
   },
   resolve: {

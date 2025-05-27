@@ -57,9 +57,53 @@ export default function Editor() {
   // State for saving
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  // Load portfolio data if editing existing portfolio
+  // Load portfolio data or initialize from template
   useEffect(() => {
-    if (portfolioId) {
+    // Check if we have a template ID in the URL
+    const searchParams = new URLSearchParams(location.includes('?') ? location.split('?')[1] : '');
+    const templateId = searchParams.get('template');
+    
+    if (templateId) {
+      // Initialize from template
+      setIsLoading(true);
+      console.log('Initializing portfolio from template:', templateId);
+      
+      portfolioApi.create({
+        title: 'New Portfolio',
+        description: `Created from template`,
+        template: templateId,
+        isPublished: false,
+        userId: JSON.parse(atob(localStorage.getItem('token')?.split('.')[1] || '')).id || 'demo-user',
+        sections: [],
+        theme: {
+          mode: 'light' as const,
+          primaryColor: '#000000',
+          secondaryColor: '#ffffff',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '16px'
+        }
+      })
+      .then((newPortfolio) => {
+        console.log('New portfolio created:', newPortfolio);
+        setPortfolio(newPortfolio);
+        // Select the first section if available
+        if (newPortfolio.sections && newPortfolio.sections.length > 0) {
+          setSelectedSection(newPortfolio.sections[0].id);
+        }
+      })
+      .catch(error => {
+        console.error('Error creating portfolio from template:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to create portfolio from template. Please try again.',
+          variant: 'destructive'
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+    } else if (portfolioId) {
+      // Load existing portfolio
       setIsLoading(true);
       console.log('Loading portfolio with ID:', portfolioId);
       
@@ -84,7 +128,7 @@ export default function Editor() {
           setIsLoading(false);
         });
     }
-  }, [portfolioId, toast]);
+  }, [portfolioId, location, toast]);
 
   // Add a new section
   const addSection = (type: SectionType) => {
@@ -188,14 +232,29 @@ export default function Editor() {
     setIsSaving(true);
     
     try {
+      // Get template ID from URL if it exists
+      const searchParams = new URLSearchParams(location.includes('?') ? location.split('?')[1] : '');
+      const templateId = searchParams.get('template');
+      
       let data;
       
       if (portfolioId) {
         // Update existing portfolio
         data = await portfolioApi.update(portfolioId, portfolio);
       } else {
-        // Create new portfolio
-        data = await portfolioApi.create(portfolio);
+        // Create new portfolio from template
+        data = await portfolioApi.create({
+          ...portfolio,
+          template: templateId || undefined
+        });
+      }
+      
+      // Update portfolio ID in state if it's a new portfolio
+      if (!portfolioId) {
+        setPortfolio(prev => ({
+          ...prev,
+          id: data.id
+        }));
       }
       
       toast({
@@ -209,6 +268,28 @@ export default function Editor() {
       toast({
         title: 'Error',
         description: 'Failed to save portfolio. Please try again.',
+        variant: 'destructive'
+      });
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete portfolio
+  const deletePortfolio = async (id: string) => {
+    try {
+      setIsSaving(true);
+      await portfolioApi.delete(id);
+      toast({
+        title: 'Success',
+        description: 'Portfolio deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting portfolio:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete portfolio. Please try again.',
         variant: 'destructive'
       });
       throw error;
@@ -384,6 +465,7 @@ export default function Editor() {
               savePortfolio={savePortfolio}
               exportPortfolio={exportPortfolio}
               deployPortfolio={deployPortfolio}
+              deletePortfolio={deletePortfolio}
               isSaving={isSaving}
             />
           </div>

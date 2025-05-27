@@ -77,7 +77,7 @@ const theme = createTheme({
   },
 });
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
@@ -96,5 +96,3 @@ function App() {
     </AuthProvider>
   );
 }
-
-export default App;

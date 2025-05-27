@@ -94,7 +94,18 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
 // Portfolio API
 export const portfolioApi = {
   // Get all portfolios for the current user
-  getAll: () => apiRequest('/portfolios'),
+  getAll: () => {
+    const token = getToken();
+    if (!token) {
+      throw new Error('No token found');
+    }
+    // Extract userId from token (the token uses 'id' instead of 'userId')
+    const userId = JSON.parse(atob(token.split('.')[1])).id;
+    if (!userId) {
+      throw new Error('Invalid token: No user id found');
+    }
+    return apiRequest(`/portfolios?userId=${userId}`);
+  },
   
   // Get a specific portfolio
   getById: (id: string) => apiRequest(`/portfolios/${id}`),
@@ -117,11 +128,33 @@ export const portfolioApi = {
   // Delete a portfolio
   delete: async (id: string) => {
     try {
-      console.log('Deleting portfolio with ID:', id);
-      const result = await apiRequest(`/portfolios/${id}`, {
+      // Validate the ID format - MongoDB ObjectIds are 24-character hex strings
+      if (!id || typeof id !== 'string') {
+        throw new Error('Invalid portfolio ID: ID must be a string');
+      }
+      
+      // Extract the ID from MongoDB format if needed
+      let portfolioId = id;
+      
+      // If it's a MongoDB ObjectId string like "_id": "68363187bb0958f29f0ccd8f"
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        portfolioId = id; // Already in the correct format
+      } 
+      // If it's a MongoDB ObjectId in string format like ObjectId("68363187bb0958f29f0ccd8f")
+      else if (id.match(/^ObjectId\(['"]([0-9a-fA-F]{24})['"](,\s*\{.*\})?\)$/)) {
+        portfolioId = id.replace(/^ObjectId\(['"]([0-9a-fA-F]{24})['"](,\s*\{.*\})?\)$/, '$1');
+      }
+      // If it doesn't match either format, it's likely invalid
+      else {
+        throw new Error(`Invalid portfolio ID format: ${id}`);
+      }
+      
+      console.log('Deleting portfolio with validated ID:', portfolioId);
+      
+      const result = await apiRequest(`/portfolios/${portfolioId}`, {
         method: 'DELETE',
       });
-      console.log('Portfolio deleted successfully:', id);
+      console.log('Portfolio deleted successfully:', portfolioId);
       return result;
     } catch (error) {
       console.error(`Error deleting portfolio ${id}:`, error);
@@ -290,13 +323,26 @@ export const templateApi = {
   
   // Delete a template (admin only)
   delete: async (id: string) => {
-    const result = await apiRequest(`/templates/${id}`, {
-      method: 'DELETE',
-    });
+    if (!id) {
+      console.error('Invalid template ID provided for deletion:', id);
+      throw new Error('Invalid template ID: Template ID is required for deletion');
+    }
     
-    // Invalidate cache after deleting
-    templateCache = { templates: null, timestamp: 0 };
-    return result;
+    try {
+      console.log('Deleting template with ID:', id);
+      const result = await apiRequest(`/templates/${id}`, {
+        method: 'DELETE',
+      });
+      
+      console.log('Template deleted successfully:', id);
+      
+      // Invalidate cache after deleting
+      templateCache = { templates: null, timestamp: 0 };
+      return result;
+    } catch (error) {
+      console.error(`Error deleting template ${id}:`, error);
+      throw error;
+    }
   },
 };
 

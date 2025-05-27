@@ -13,6 +13,8 @@ export interface IUser extends Document {
     twitter?: string;
     website?: string;
   };
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,7 +86,9 @@ const UserSchema = new Schema<IUser>({
     linkedin: { type: String },
     twitter: { type: String },
     website: { type: String }
-  }
+  },
+  passwordResetToken: { type: String },
+  passwordResetExpires: { type: Date }
 }, { timestamps: true });
 
 // Portfolio Schema

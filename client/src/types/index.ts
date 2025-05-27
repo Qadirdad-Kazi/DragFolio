@@ -41,6 +41,7 @@ export type Theme = PortfolioTheme;
 // Define portfolio data
 export interface Portfolio {
   id?: string;
+  _id?: string; // MongoDB-style ID field
   title: string;
   description?: string;
   sections: PortfolioSection[];
@@ -53,6 +54,7 @@ export interface Portfolio {
   visits?: number;
   template?: string;
   thumbnail?: string;
+  __v?: number; // MongoDB version field
 }
 
 // Define template data
@@ -62,12 +64,14 @@ export interface Template {
   category: string;
   description: string;
   thumbnail: string;
+  tags: string[];
   sections: PortfolioSection[];
   theme: PortfolioTheme;
   isPublic: boolean;
   isFeatured?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  isCustom: boolean;
 }
 
 // Define user data

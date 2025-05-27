@@ -2,7 +2,9 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { User } from '../models/mongoose-schema';
+import { User, IUser } from '../models/mongoose-schema';
+import { v4 as uuidv4 } from 'uuid';
+import { sendEmail, sendPasswordResetEmail } from '../utils/email';
 
 const router = express.Router();
 
@@ -19,10 +21,55 @@ const loginSchema = z.object({
   password: z.string()
 });
 
-// MongoDB is now used instead of the mock user database
+// Password reset request schema
+const passwordResetRequestSchema = z.object({
+  email: z.string().email()
+});
+
+// Password reset schema
+const passwordResetSchema = z.object({
+  token: z.string(),
+  password: z.string().min(6)
+});
 
 // JWT secret
 const JWT_SECRET = process.env.JWT_SECRET || 'dragfolio-jwt-secret';
+
+// Password reset token expiration time (1 hour)
+const PASSWORD_RESET_TOKEN_EXPIRY = 3600000; // 1 hour in milliseconds
+
+// Add password reset token field to User model
+User.schema.add({
+  passwordResetToken: String,
+  passwordResetExpires: Date
+});
+
+// Helper function to generate password reset token
+const generatePasswordResetToken = async (userId: string) => {
+  const resetToken = uuidv4();
+  const hashedToken = await bcrypt.hash(resetToken, 10);
+  
+  await User.findByIdAndUpdate(userId, {
+    passwordResetToken: hashedToken,
+    passwordResetExpires: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY)
+  });
+  
+  return resetToken;
+};
+
+// Helper function to verify password reset token
+const verifyPasswordResetToken = async (token: string) => {
+  const user = await User.findOne({
+    passwordResetToken: await bcrypt.hash(token, 10),
+    passwordResetExpires: { $gt: new Date() }
+  });
+  
+  if (!user) {
+    throw new Error('Invalid or expired password reset token');
+  }
+  
+  return user;
+};
 
 // Register endpoint
 router.post('/register', async (req, res) => {
@@ -110,6 +157,51 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Request password reset endpoint
+router.post('/password-reset', async (req, res) => {
+  try {
+    const validatedData = passwordResetRequestSchema.parse(req.body);
+    const user = await User.findOne<IUser>({ email: validatedData.email });
+    
+    if (!user) {
+      return res.json({ message: 'If an account exists with this email, you will receive a password reset link' });
+    }
+    
+    const resetToken = await generatePasswordResetToken(user._id as string);
+    await sendPasswordResetEmail(validatedData.email, resetToken);
+    
+    res.json({ message: 'If an account exists with this email, you will receive a password reset link' });
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reset password endpoint
+router.post('/reset-password', async (req, res) => {
+  try {
+    const validatedData = passwordResetSchema.parse(req.body);
+    const user = await verifyPasswordResetToken(validatedData.token);
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(validatedData.password, salt);
+    
+    await User.findByIdAndUpdate(user._id, {
+      password: hashedPassword,
+      passwordResetToken: undefined,
+      passwordResetExpires: undefined
+    });
+    
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Password reset error:', error);
+    if (error.message === 'Invalid or expired password reset token') {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Google OAuth endpoint (placeholder)
 router.get('/google', (req, res) => {
   res.status(501).json({ message: 'Google OAuth not implemented yet' });
@@ -117,9 +209,31 @@ router.get('/google', (req, res) => {
 
 // Get current user endpoint
 router.get('/me', (req, res) => {
-  // This would use middleware to verify the JWT token
-  // For now, just return a placeholder response
-  res.status(501).json({ message: 'Get current user not implemented yet' });
+  if (!req.user) {
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+  
+  // Cast to IUser type
+  const user = req.user as IUser;
+  res.json({
+    id: user._id,
+    email: user.email,
+    name: user.name
+  });
+});
+
+// Request password reset
+router.post('/password-reset', async (req, res) => {
+  try {
+    const validatedData = passwordResetRequestSchema.parse(req.body);
+    const user = await User.findOne({ email: validatedData.email });
+  } catch (error) {
+    console.error('Password reset error:', error);
+    if (error.message === 'Invalid or expired password reset token') {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 export default router;

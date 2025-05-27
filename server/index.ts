@@ -17,7 +17,7 @@ import templateRoutes from './routes/template';
 import userRoutes from './routes/user';
 
 // Environment variables
-const PORT = process.env.PORT || 3002; // Changed to 3002 to avoid conflicts
+const PORT = parseInt(process.env.PORT || '3001'); // Default to 3001 if not specified
 const SESSION_SECRET = process.env.SESSION_SECRET || 'dragfolio-secret-key';
 const DATABASE_URL = process.env.DATABASE_URL || '';
 
@@ -54,14 +54,21 @@ app.use(session({
   }
 }));
 
-// Database connection
+// Database setup
+const db = mongoose.connection;
+
 if (DATABASE_URL) {
   mongoose.connect(DATABASE_URL)
-    .then(() => console.log('Connected to MongoDB'))
+    .then(() => {
+      console.log('Connected to MongoDB');
+    })
     .catch(err => console.error('MongoDB connection error:', err));
 } else {
   console.warn('No DATABASE_URL provided, database features will not work');
 }
+
+// Export database for routes
+export { db };
 
 // API routes
 app.use('/api/auth', authRoutes);

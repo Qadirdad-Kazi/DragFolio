@@ -1,32 +1,4 @@
-# Dragfolio UI Testing Guide
 
-This document provides step-by-step instructions for testing the Dragfolio web application UI.
-
-## Prerequisites
-
-1. Node.js (v16 or higher) installed
-2. npm or yarn installed
-3. MongoDB Atlas account or local MongoDB instance
-4. All dependencies installed (run `npm install` in the root directory)
-
-## Starting the Application for Testing
-
-1. Create a `.env` file in the root directory with the following variables:
-   ```
-   NODE_ENV=development
-   PORT=3001
-   SESSION_SECRET=your_session_secret
-   JWT_SECRET=your_jwt_secret
-   CLIENT_URL=http://localhost:5173
-   DATABASE_URL=your_mongodb_connection_string
-   ```
-
-2. Start both client and server with a single command:
-   ```
-   npm run dev
-   ```
-
-3. Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5173`)
 
 ## UI Testing Scenarios
 
@@ -106,11 +78,6 @@ This document provides step-by-step instructions for testing the Dragfolio web a
   - Extract the downloaded file and open in a browser
   - Verify all content and styling is correct
 
-- **Subdomain Deployment:**
-  - Click "Deploy to Subdomain" button
-  - Enter a subdomain name
-  - Complete the deployment process
-  - Verify the portfolio is accessible at the specified subdomain
 
 ### 6. Image Upload
 
@@ -121,39 +88,3 @@ This document provides step-by-step instructions for testing the Dragfolio web a
   - Test replacing an existing image
   - Test deleting an uploaded image
 
-### 7. Accessibility Testing
-
-- Test keyboard navigation throughout the application
-- Verify proper focus states for interactive elements
-- Check color contrast for text elements
-- Verify screen reader compatibility
-- Test with browser zoom (up to 200%)
-
-### 8. Error Handling
-
-- Test form validation errors
-- Test API error responses
-- Test offline behavior
-- Verify helpful error messages are displayed
-
-## Reporting Issues
-
-When reporting issues, please include:
-
-1. Steps to reproduce the issue
-2. Expected behavior
-3. Actual behavior
-4. Screenshots or screen recordings if possible
-5. Browser and operating system information
-6. Console errors (if any)
-
-## Automated Testing
-
-For running automated UI tests:
-
-```
-cd client
-npm run cypress:open
-```
-
-Select the test suite you want to run from the Cypress test runner.

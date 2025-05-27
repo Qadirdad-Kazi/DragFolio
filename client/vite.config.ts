@@ -32,6 +32,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    fs: {
+      allow: [
+        path.resolve(__dirname, '../AR-Web'),
+        path.resolve(__dirname, '.')
+      ]
+    },
     proxy: {
       '/api': {
         // Auto-detect port by trying common backend ports

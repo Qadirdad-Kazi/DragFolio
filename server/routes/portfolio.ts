@@ -1,6 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { getTemplates } from './template';
+import { Portfolio } from '../models/mongoose-schema';
 
 const router = express.Router();
 
@@ -31,169 +32,98 @@ const portfolioSchema = z.object({
   userId: z.string()
 }).passthrough(); // Allow extra fields like 'template'
 
-// Mock portfolio database (replace with actual DB implementation)
-const portfolios: any[] = [];
-
 // Get all portfolios for a user
-router.get('/', (req, res) => {
-  // In a real implementation, this would be filtered by the authenticated user
-  // For now, just return all portfolios
-  res.json(portfolios);
+router.get('/', async (req, res) => {
+  try {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+    const portfolios = await Portfolio.find({ userId });
+    res.json(portfolios);
+  } catch (error) {
+    console.error('Error fetching portfolios:', error);
+    res.status(500).json({ message: 'Error fetching portfolios' });
+  }
 });
 
 // Get a specific portfolio
-router.get('/:id', (req, res) => {
-  const portfolio = portfolios.find((p: any) => p.id === req.params.id);
-  if (!portfolio) {
-    return res.status(404).json({ message: 'Portfolio not found' });
+router.get('/:id', async (req, res) => {
+  try {
+    const portfolio = await Portfolio.findById(req.params.id);
+    if (!portfolio) {
+      return res.status(404).json({ message: 'Portfolio not found' });
+    }
+    res.json(portfolio);
+  } catch (error) {
+    console.error('Error fetching portfolio:', error);
+    res.status(500).json({ message: 'Error fetching portfolio' });
   }
-  res.json(portfolio);
 });
 
-// Create a new portfolio
+// Create a portfolio
 router.post('/', async (req, res) => {
   try {
-    console.log('Creating portfolio with data:', req.body);
-    
     // Check if a template ID is provided
-    const { template: templateId, ...portfolioData } = req.body as { template?: string } & Record<string, any>;
-    
-    let initialSections: any[] = [];
-    let initialTheme = {
-      mode: 'light' as const,
-      primaryColor: '#3490dc',
-      secondaryColor: '#ffed4a',
-      fontFamily: 'Inter, sans-serif',
-      fontSize: '16px'
-    };
-    
-    // If a template ID is provided, fetch the template and use its sections and theme
-    if (templateId) {
-      console.log('Template ID provided:', templateId);
-      
-      // Find the template from the mock templates array in template.ts
-      // In a real implementation, this would be a database query
+    if (req.body.templateId) {
       const templates = getTemplates();
-      console.log('Available templates:', templates.map((t: any) => ({ id: t.id, name: t.name })));
-      
-      const template = templates.find((t: any) => t.id === templateId);
-      
-      if (template) {
-        console.log('Template found:', template.name);
-        console.log('Template sections:', JSON.stringify(template.sections, null, 2));
-        console.log('Template theme:', JSON.stringify(template.theme, null, 2));
-        
-        // Deep clone to avoid reference issues
-        initialSections = JSON.parse(JSON.stringify(template.sections)); 
-        initialTheme = JSON.parse(JSON.stringify(template.theme));
-        
-        console.log('Initial sections after cloning:', JSON.stringify(initialSections, null, 2));
-      } else {
-        console.log('Template not found with ID:', templateId);
+      const template = templates.find(t => t.id === req.body.templateId);
+      if (!template) {
         return res.status(404).json({ message: 'Template not found' });
       }
-    }
-    
-    // Ensure we have a userId
-    if (!portfolioData.userId) {
-      portfolioData.userId = 'demo-user'; // In a real app, this would come from authentication
-    }
-    
-    // Merge the portfolio data with the template data
-    const mergedData = {
-      ...portfolioData,
-      sections: portfolioData.sections || initialSections,
-      theme: portfolioData.theme || initialTheme
-    };
-    
-    console.log('Merged portfolio data:', JSON.stringify(mergedData, null, 2));
-    
-    // Validate the merged data with safeParse to get detailed error information
-    const validationResult = portfolioSchema.safeParse(mergedData);
-    
-    if (!validationResult.success) {
-      console.error('Portfolio validation failed:', JSON.stringify(validationResult.error.format(), null, 2));
-      return res.status(400).json({
-        message: 'Validation error',
-        errors: validationResult.error.errors
+      
+      // Create portfolio based on template
+      const newPortfolio = new Portfolio({
+        ...template,
+        title: req.body.title,
+        description: req.body.description,
+        userId: req.body.userId,
+        isPublished: false
       });
+      await newPortfolio.save();
+      return res.status(201).json(newPortfolio);
     }
     
-    const validatedData = validationResult.data;
-    
-    // Create new portfolio
-    const newPortfolio = {
-      id: Date.now().toString(),
-      ...validatedData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    // Save portfolio (mock implementation)
-    portfolios.push(newPortfolio);
-    
-    console.log('Successfully created portfolio:', JSON.stringify(newPortfolio, null, 2));
-    res.status(201).json(newPortfolio);
+    // Create portfolio from request body
+    const portfolio = new Portfolio(req.body);
+    await portfolio.save();
+    res.status(201).json(portfolio);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('Validation error:', error.errors);
-      return res.status(400).json({ message: 'Validation error', errors: error.errors });
-    }
-    console.error('Create portfolio error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error creating portfolio:', error);
+    res.status(400).json({ message: 'Invalid portfolio data' });
   }
 });
 
 // Update a portfolio
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    // Find portfolio
-    const portfolioIndex = portfolios.findIndex((p: any) => p.id === req.params.id);
-    if (portfolioIndex === -1) {
+    const portfolio = await Portfolio.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!portfolio) {
       return res.status(404).json({ message: 'Portfolio not found' });
     }
-    
-    // Validate request body
-    const validatedData = portfolioSchema.parse(req.body);
-    
-    // Update portfolio
-    const updatedPortfolio = {
-      ...portfolios[portfolioIndex] as any,
-      ...validatedData,
-      updatedAt: new Date().toISOString()
-    };
-    
-    // Save updated portfolio (mock implementation)
-    portfolios[portfolioIndex] = updatedPortfolio;
-    
-    res.json(updatedPortfolio);
+    res.json(portfolio);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Validation error', errors: error.errors });
-    }
-    console.error('Update portfolio error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error updating portfolio:', error);
+    res.status(400).json({ message: 'Invalid portfolio data' });
   }
 });
 
 // Delete a portfolio
-router.delete('/:id', (req, res) => {
-  // Find portfolio
-  const portfolioIndex = portfolios.findIndex(p => p.id === req.params.id);
-  if (portfolioIndex === -1) {
-    return res.status(404).json({ message: 'Portfolio not found' });
+router.delete('/:id', async (req, res) => {
+  try {
+    const portfolio = await Portfolio.findByIdAndDelete(req.params.id);
+    if (!portfolio) {
+      return res.status(404).json({ message: 'Portfolio not found' });
+    }
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting portfolio:', error);
+    res.status(500).json({ message: 'Error deleting portfolio' });
   }
-  
-  // Remove portfolio (mock implementation)
-  portfolios.splice(portfolioIndex, 1);
-  
-  res.status(204).send();
-});
-
-// Export portfolio as HTML/ZIP
-router.get('/:id/export', (req, res) => {
-  // This would generate and return a ZIP file with the portfolio HTML/CSS/JS
-  res.status(501).json({ message: 'Export functionality not implemented yet' });
 });
 
 // Deploy portfolio to subdomain

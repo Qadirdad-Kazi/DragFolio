@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from 'wouter';
+import { SectionType } from '../types';
+import type { Portfolio } from '../types';
 import {
   Container,
   Box,
@@ -11,38 +13,28 @@ import {
   CardHeader,
   CardActions,
   CardMedia,
-  Grid,
-  Paper,
-  Tabs,
-  Tab,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
   TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  Chip,
+  Grid,
+  Stack,
   CircularProgress,
-  Divider,
-  IconButton,
-  Alert,
-  Stack
+  Paper,
+  Chip
 } from '@mui/material';
+
 import {
-  Edit as EditIcon,
   Visibility as VisibilityIcon,
-  Delete as DeleteIcon,
   Add as AddIcon,
-  GetApp as DownloadIcon
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { portfolioApi, templateApi } from '../services/api';
-import { Portfolio as PortfolioType } from '../types';
+import { Portfolio as PortfolioType, Template } from '../types';
 
-// Define a runtime type that ensures required fields for UI display
 interface Portfolio extends PortfolioType {
   id: string;
   title: string;
@@ -53,82 +45,82 @@ interface Portfolio extends PortfolioType {
   visits: number;
 }
 
-export default function Dashboard() {
+function Dashboard() {
   const { isAuthenticated, user } = useAuth();
   const [_, navigate] = useLocation();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [templates, setTemplates] = useState<Template[]>([]);
+  type TabType = 'portfolios' | 'all' | 'published' | 'drafts' | 'templates';
+  const [activeTab, setActiveTab] = useState<TabType>('portfolios');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [portfolioToDelete, setPortfolioToDelete] = useState<Portfolio | null>(null);
   const [newPortfolioName, setNewPortfolioName] = useState('');
   const [newPortfolioDescription, setNewPortfolioDescription] = useState('');
-  const [newPortfolioTemplate, setNewPortfolioTemplate] = useState('blank');
-  const [error, setError] = useState<string | null>(null);
-  const [templateOptions, setTemplateOptions] = useState<{value: string, label: string}[]>([]);
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
+  const [isDeleteTemplateDialogOpen, setIsDeleteTemplateDialogOpen] = useState(false);
 
-  // Fetch portfolios when component mounts
   useEffect(() => {
     if (isAuthenticated) {
       fetchPortfolios();
-      fetchTemplates();
+      fetchUserTemplates();
     } else {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
-  
-  // Fetch user's portfolios
+
   const fetchPortfolios = async () => {
     setIsLoading(true);
-    setError(null);
-    
     try {
       const data = await portfolioApi.getAll();
       setPortfolios(data);
     } catch (err) {
       console.error('Failed to fetch portfolios:', err);
-      setError('Failed to load your portfolios. Please try again later.');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Fetch available templates
-  const fetchTemplates = async () => {
+
+  const fetchUserTemplates = async () => {
+    setIsLoadingTemplates(true);
     try {
       const data = await templateApi.getAll();
-      const options = [{ value: 'blank', label: 'Blank Canvas' }];
-      
-      data.forEach((template: any) => {
-        if (template.isPublished) {
-          options.push({
-            value: template.id,
-            label: template.name
-          });
-        }
-      });
-      
-      setTemplateOptions(options);
+      // Check if user is admin - if so, show all templates
+      // Otherwise, filter to show only user's templates (custom templates)
+      const userTemplates = user?.role === 'admin' 
+        ? data
+        : data.filter((template: Template) => template.isCustom);
+      setTemplates(userTemplates);
     } catch (err) {
       console.error('Failed to fetch templates:', err);
+    } finally {
+      setIsLoadingTemplates(false);
     }
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Filter portfolios based on active tab
   const filteredPortfolios = portfolios.filter(portfolio => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'published') return portfolio.isPublished;
-    if (activeTab === 'drafts') return !portfolio.isPublished;
+    // First check if we're in the portfolios tab
+    if (activeTab !== 'portfolios') {
+      return false;
+    }
+    
+    // Then apply the filter status
+    if (filterStatus === 'all') {
+      return true;
+    } else if (filterStatus === 'published') {
+      return portfolio.isPublished;
+    } else if (filterStatus === 'draft') {
+      return !portfolio.isPublished;
+    }
     return true;
   });
 
-  // Format date
+  const filteredTemplates = templates.filter(() => activeTab === 'templates');
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -138,349 +130,544 @@ export default function Dashboard() {
     });
   };
 
-  // Handle create portfolio
   const handleCreatePortfolio = async () => {
     if (!newPortfolioName.trim()) return;
     
     setIsLoadingAction(true);
-    setError(null);
-    
     try {
-      const newPortfolio = await portfolioApi.create({
-        title: newPortfolioName,
-        description: newPortfolioDescription || '',
-        template: newPortfolioTemplate,
+      // Ensure we have a valid user ID
+      if (!user?.id) {
+        throw new Error('User ID is required to create a portfolio');
+      }
+      
+      // Create a properly structured portfolio object with typed sections
+      const portfolioData = {
+        title: newPortfolioName.trim(),
+        description: newPortfolioDescription?.trim() || 'My professional portfolio',
         isPublished: false,
-        // Add required fields based on server validation schema
-        sections: [],
+        userId: user.id,
+        // Add required sections array with at least one section
+        sections: [
+          {
+            id: `section-${Date.now()}`,
+            type: 'about' as SectionType, // Explicitly cast to SectionType
+            title: 'About Me',
+            content: { text: 'Welcome to my portfolio' },
+            order: 0,
+            layout: 'full' as 'full' | 'half' | 'two-columns' // Explicitly cast layout
+          }
+        ],
+        // Add required theme object
         theme: {
-          mode: 'light',
+          mode: 'light' as 'light' | 'dark', // Explicitly cast theme mode
           primaryColor: '#3490dc',
           secondaryColor: '#ffed4a',
           fontFamily: 'Inter, sans-serif',
           fontSize: '16px'
-        },
-        userId: user?.id || 'temp-user-id' // Use the logged-in user ID or a temporary one
-      });
+        }
+      };
       
+      console.log('Creating portfolio with validated data:', portfolioData);
+      // Cast the data to the correct type to satisfy TypeScript
+      const newPortfolio = await portfolioApi.create(portfolioData as Partial<Portfolio>);
+      
+      // Update local state and navigate to editor
       setPortfolios([newPortfolio, ...portfolios]);
       setIsCreateDialogOpen(false);
       setNewPortfolioName('');
       setNewPortfolioDescription('');
-      setNewPortfolioTemplate('blank');
       
-      // Navigate to editor with the new portfolio ID
+      // Show success message
+      alert(`Portfolio "${newPortfolioName}" created successfully!`);
+      
+      // Navigate to editor
       navigate(`/editor?id=${newPortfolio.id}`);
     } catch (err) {
       console.error('Failed to create portfolio:', err);
-      setError('Failed to create portfolio. Please try again.');
+      alert('Failed to create portfolio. Please try again.');
     } finally {
       setIsLoadingAction(false);
     }
   };
 
-  // Handle delete portfolio
-  const handleDeletePortfolio = async () => {
-    if (!portfolioToDelete || !portfolioToDelete.id) {
-      console.error('No valid portfolio provided for deletion');
-      setError('Cannot delete portfolio: Invalid portfolio data');
+  const handleDeleteTemplate = async () => {
+    // Validate template exists and has an ID
+    if (!templateToDelete) {
+      console.error('No template selected for deletion');
+      alert('No template selected for deletion');
+      setIsDeleteTemplateDialogOpen(false);
       return;
     }
     
+    if (!templateToDelete.id) {
+      console.error('Template is missing ID:', templateToDelete);
+      alert('Cannot delete template: Missing ID');
+      setIsDeleteTemplateDialogOpen(false);
+      return;
+    }
+    
+    // Check if user has permission to delete templates
+    if (user?.role !== 'admin' && !templateToDelete.isCustom) {
+      console.error('Permission denied: Only admin users can delete system templates');
+      alert('You do not have permission to delete this template. Only custom templates can be deleted by regular users.');
+      setIsDeleteTemplateDialogOpen(false);
+      return;
+    }
+    
+    console.log('Attempting to delete template with ID:', templateToDelete.id, 'Name:', templateToDelete.name);
     setIsLoadingAction(true);
-    setError(null);
     
     try {
-      console.log('Deleting portfolio with ID:', portfolioToDelete.id);
+      // For built-in templates (IDs 1-10), we need admin permissions
+      if (Number(templateToDelete.id) <= 10 && user?.role !== 'admin') {
+        throw new Error('Permission denied: Cannot delete built-in templates');
+      }
       
-      // Use the API service to delete the portfolio
-      await portfolioApi.delete(portfolioToDelete.id);
+      // Ensure the ID is a string
+      const templateId = String(templateToDelete.id).trim();
+      if (!templateId) {
+        throw new Error('Invalid template ID');
+      }
       
-      // Update the local state to remove the deleted portfolio
-      setPortfolios(portfolios.filter(p => p.id !== portfolioToDelete.id));
-      setIsDeleteDialogOpen(false);
-      setPortfolioToDelete(null);
+      const result = await templateApi.delete(templateId);
+      console.log('Template deletion result:', result);
+      
+      // Update the templates list by filtering out the deleted template
+      setTemplates(templates.filter(t => t.id !== templateToDelete.id));
+      setIsDeleteTemplateDialogOpen(false);
       
       // Show success message
-      setError(null);
+      alert(`Template "${templateToDelete.name}" deleted successfully`);
+      
+      // Refresh the templates list to ensure it's up to date
+      fetchUserTemplates();
     } catch (err) {
-      console.error('Failed to delete portfolio:', err);
-      setError('Failed to delete portfolio. Please try again.');
+      console.error('Failed to delete template:', err);
+      
+      // Provide specific error message based on the error
+      if (err instanceof Error && err.message.includes('Permission denied')) {
+        alert('Permission denied: You cannot delete built-in templates.');
+      } else if (err instanceof Error && err.message.includes('404')) {
+        alert('Template not found. It may have been already deleted.');
+      } else if (err instanceof Error && err.message.includes('Invalid template ID')) {
+        alert('Invalid template ID. Please try again.');
+      } else {
+        alert('Failed to delete template. Please try again later.');
+      }
     } finally {
       setIsLoadingAction(false);
     }
   };
 
-  // Handle edit portfolio
-  const handleEditPortfolio = (portfolioId: string | undefined) => {
-    if (!portfolioId) {
-      console.error('No portfolio ID provided for editing');
-      setError('Cannot edit portfolio: No ID provided');
+  const handleEditTemplate = (template: Template) => {
+    if (!template.id) {
+      console.error('No template ID provided for editing');
       return;
     }
-    console.log('Navigating to editor with portfolio ID:', portfolioId);
-    navigate(`/editor?id=${portfolioId}`);
+    
+    // Check if user has permission to edit this template
+    if (user?.role !== 'admin' && !template.isCustom) {
+      console.error('Permission denied: Only admin users can edit system templates');
+      alert('You do not have permission to edit this template. Only custom templates can be edited by regular users.');
+      return;
+    }
+    
+    // For built-in templates (IDs 1-10), we need admin permissions
+    if (Number(template.id) <= 10 && user?.role !== 'admin') {
+      alert('Permission denied: You cannot edit built-in templates.');
+      return;
+    }
+    
+    console.log('Editing template with ID:', template.id);
+    
+    // Navigate to editor with template ID as a parameter
+    navigate(`/editor?templateId=${template.id}`);
   };
 
-  // Handle view portfolio
-  const handleViewPortfolio = (portfolio: Portfolio) => {
-    if (!portfolio || !portfolio.id) {
-      console.error('No valid portfolio provided for viewing');
-      setError('Cannot view portfolio: Invalid portfolio data');
+  const handleEditPortfolio = (portfolio: Portfolio) => {
+    if (!portfolio.id) {
+      console.error('No portfolio ID provided for editing');
+      alert('Cannot edit portfolio: Missing ID');
       return;
     }
     
-    console.log('Viewing portfolio:', portfolio.id, portfolio.isPublished);
+    console.log('Editing portfolio with ID:', portfolio.id, 'Title:', portfolio.title);
+    navigate(`/editor?id=${portfolio.id}`);
+  };
+
+  const handleDeletePortfolio = async () => {
+    // Validate portfolio exists and has an ID
+    if (!portfolioToDelete) {
+      console.error('No portfolio selected for deletion');
+      alert('No portfolio selected for deletion');
+      setIsDeleteDialogOpen(false);
+      return;
+    }
     
-    if (portfolio.isPublished && portfolio.subdomain) {
-      // For published portfolios with a subdomain, open in a new tab
-      window.open(`https://${portfolio.subdomain}.dragfolio.io`, '_blank');
-    } else {
-      // For drafts, navigate to the preview page
-      console.log('Navigating to preview with portfolio ID:', portfolio.id);
-      navigate(`/preview?id=${portfolio.id}`);
+    // Check for either id or _id (MongoDB style)
+    const portfolioId = portfolioToDelete.id || portfolioToDelete._id;
+    
+    if (!portfolioId) {
+      console.error('Portfolio is missing ID:', portfolioToDelete);
+      alert('Cannot delete portfolio: Missing ID');
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+    
+    console.log('Attempting to delete portfolio with ID:', portfolioId, 'Title:', portfolioToDelete.title);
+    setIsLoadingAction(true);
+    
+    try {
+      // Ensure the ID is a string and valid
+      const idToDelete = String(portfolioId).trim();
+      if (!idToDelete) {
+        throw new Error('Invalid portfolio ID');
+      }
+      
+      // Log the exact ID being sent to the API
+      console.log('Sending delete request with exact ID:', idToDelete, 'Type:', typeof idToDelete);
+      
+      // Call the API to delete the portfolio
+      const result = await portfolioApi.delete(idToDelete);
+      console.log('Portfolio deletion result:', result);
+      
+      // Update the portfolios list by filtering out the deleted portfolio
+      setPortfolios(portfolios.filter(p => {
+        // Get the ID from either id or _id field
+        const pId = p.id || p._id;
+        // Handle both string and number IDs for comparison
+        return String(pId) !== String(portfolioId);
+      }));
+      
+      setIsDeleteDialogOpen(false);
+      
+      // Show success message
+      alert(`Portfolio "${portfolioToDelete.title}" deleted successfully`);
+      
+      // Refresh the portfolios list to ensure it's up to date
+      fetchPortfolios();
+    } catch (err) {
+      console.error('Failed to delete portfolio:', err);
+      
+      // Provide specific error message based on the error
+      if (err instanceof Error && err.message.includes('404')) {
+        alert('Portfolio not found. It may have been already deleted.');
+      } else if (err instanceof Error && err.message.includes('Invalid portfolio ID')) {
+        alert('Invalid portfolio ID. Please try again.');
+      } else {
+        alert('Failed to delete portfolio. Please try again later.');
+      }
+    } finally {
+      setIsLoadingAction(false);
     }
   };
+
+  const handleViewPortfolio = (portfolio: Portfolio) => {
+    if (!portfolio.id) return;
+    navigate(`/portfolio/${portfolio.id}`);
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <>
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 4 }}>
-      <Container maxWidth="lg">
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', md: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', md: 'center' },
-          mb: 4
-        }}>
-          <Box>
-            <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 4 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 4
+          }}>
+            <Typography variant="h4" component="h1">
               Dashboard
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Manage your portfolios and templates
-            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              Create New Portfolio
+            </Button>
           </Box>
-          
-          <Button 
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setIsCreateDialogOpen(true)}
-            sx={{ mt: { xs: 2, md: 0 } }}
-          >
-            Create Portfolio
-          </Button>
-        </Box>
-        
-        <Grid container spacing={3}>
-          {/* Left sidebar with stats */}
-          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-            <Card elevation={2}>
-              <CardHeader 
-                title={`Welcome, ${user?.name}`}
-                subheader="Here's an overview of your portfolios"
-              />
-              <CardContent>
-                <Stack spacing={2}>
-                  <Paper sx={{ p: 2, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
-                    <Typography variant="h6">{portfolios.length}</Typography>
-                    <Typography variant="body2">Total Portfolios</Typography>
-                  </Paper>
-                  
-                  <Paper sx={{ p: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-                    <Typography variant="h6">
-                      {portfolios.filter(p => p.isPublished).length}
-                    </Typography>
-                    <Typography variant="body2">Published</Typography>
-                  </Paper>
-                  
-                  <Paper sx={{ p: 2, bgcolor: 'warning.light', color: 'warning.contrastText' }}>
-                    <Typography variant="h6">
-                      {portfolios.filter(p => !p.isPublished).length}
-                    </Typography>
-                    <Typography variant="body2">Drafts</Typography>
-                  </Paper>
-                  
-                  <Paper sx={{ p: 2, bgcolor: 'info.light', color: 'info.contrastText' }}>
-                    <Typography variant="h6">
-                      {portfolios.reduce((total, p) => total + (p.visits || 0), 0)}
-                    </Typography>
-                    <Typography variant="body2">Total Visits</Typography>
-                  </Paper>
-                </Stack>
-              </CardContent>
-              <CardActions sx={{ p: 2, pt: 0 }}>
-                <Button 
-                  variant="outlined" 
-                  fullWidth 
-                  startIcon={<VisibilityIcon />}
-                  onClick={() => navigate('/templates')}
-                >
-                  Browse Templates
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-          
-          {/* Main content with portfolio list */}
-          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 8' } }}>
-            <Card elevation={2}>
-              <CardHeader 
-                title="Your Portfolios"
-                action={
-                  <Tabs 
-                    value={activeTab} 
-                    onChange={(e, newValue) => setActiveTab(newValue)}
-                    indicatorColor="primary"
-                    textColor="primary"
-                  >
-                    <Tab value="all" label="All" />
-                    <Tab value="published" label="Published" />
-                    <Tab value="drafts" label="Drafts" />
-                  </Tabs>
-                }
-              />
-              <CardContent>
-                {isLoading ? (
-                  <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <CircularProgress size={48} sx={{ mb: 2 }} />
-                    <Typography color="text.secondary">Loading your portfolios...</Typography>
+
+          <Grid container spacing={3}>
+            {/* Left sidebar with stats */}
+            <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
+              <Card elevation={2}>
+                <CardHeader 
+                  title={`Welcome, ${user?.name}`}
+                  subheader={`You have ${portfolios.length} portfolios`}
+                />
+                <CardContent>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'primary.light' }}>
+                      <Typography variant="h6" color="primary.contrastText">
+                        Total Portfolios
+                      </Typography>
+                      <Typography variant="h4" color="primary.contrastText">
+                        {portfolios.length}
+                      </Typography>
+                    </Paper>
+                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'success.light' }}>
+                      <Typography variant="h6" color="success.contrastText">
+                        Published
+                      </Typography>
+                      <Typography variant="h4" color="success.contrastText">
+                        {portfolios.filter(p => p.isPublished).length}
+                      </Typography>
+                    </Paper>
+                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'warning.light' }}>
+                      <Typography variant="h6" color="warning.contrastText">
+                        Drafts
+                      </Typography>
+                      <Typography variant="h4" color="warning.contrastText">
+                        {portfolios.filter(p => !p.isPublished).length}
+                      </Typography>
+                    </Paper>
                   </Box>
-                ) : error ? (
-                  <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
-                    <Button variant="contained" onClick={fetchPortfolios}>Try Again</Button>
-                  </Box>
-                ) : filteredPortfolios.length === 0 ? (
-                  <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Typography color="text.secondary" sx={{ mb: 3 }}>No portfolios found</Typography>
-                    <Button 
-                      variant="contained" 
-                      startIcon={<AddIcon />}
-                      onClick={() => setIsCreateDialogOpen(true)}
-                    >
-                      Create Your First Portfolio
-                    </Button>
-                  </Box>
-                ) : (
-                  <Stack spacing={2}>
-                    {filteredPortfolios.map(portfolio => (
-                      <Paper 
-                        key={portfolio.id} 
-                        elevation={1}
-                        sx={{ 
-                          display: 'flex', 
-                          flexDirection: { xs: 'column', sm: 'row' },
-                          overflow: 'hidden',
-                          transition: 'box-shadow 0.3s',
-                          '&:hover': { boxShadow: 3 }
-                        }}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Main content with portfolio list */}
+            <Box sx={{ width: '100%' }}>
+              <Card>
+                <CardHeader
+                  title={activeTab === 'portfolios' ? 'Portfolios' : 'Templates'}
+                  subheader={activeTab === 'portfolios' ? 'Your created portfolios' : 'Your custom templates'}
+                  action={
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button 
+                        variant={activeTab === 'portfolios' ? 'contained' : 'outlined'}
+                        onClick={() => setActiveTab('portfolios')}
+                        size="small"
                       >
-                        <Box 
-                          sx={{ 
-                            width: { xs: '100%', sm: '25%' }, 
-                            height: { xs: 160, sm: 'auto' },
-                            bgcolor: 'grey.100'
-                          }}
-                        >
-                          <CardMedia
-                            component="img"
-                            image={portfolio.thumbnail ? portfolio.thumbnail : 'https://via.placeholder.com/300x200?text=Portfolio'}
-                            alt={portfolio.title}
-                            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        </Box>
-                        <Box sx={{ flexGrow: 1, p: 2 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <Box>
-                              <Typography variant="h6">{portfolio.title}</Typography>
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Portfolios
+                      </Button>
+                      <Button 
+                        variant={activeTab === 'templates' ? 'contained' : 'outlined'}
+                        onClick={() => setActiveTab('templates')}
+                        size="small"
+                      >
+                        Templates
+                      </Button>
+                    </Box>
+                  }
+                />
+                <CardContent>
+                  {activeTab === 'portfolios' && (
+                    <Box sx={{ mb: 3, display: 'flex', gap: 1 }}>
+                      <Button 
+                        variant={filterStatus === 'all' ? 'contained' : 'outlined'}
+                        onClick={() => setFilterStatus('all')}
+                        size="small"
+                        color="primary"
+                      >
+                        All ({portfolios.length})
+                      </Button>
+                      <Button 
+                        variant={filterStatus === 'published' ? 'contained' : 'outlined'}
+                        onClick={() => setFilterStatus('published')}
+                        size="small"
+                        color="success"
+                      >
+                        Published ({portfolios.filter(p => p.isPublished).length})
+                      </Button>
+                      <Button 
+                        variant={filterStatus === 'draft' ? 'contained' : 'outlined'}
+                        onClick={() => setFilterStatus('draft')}
+                        size="small"
+                        color="warning"
+                      >
+                        Drafts ({portfolios.filter(p => !p.isPublished).length})
+                      </Button>
+                    </Box>
+                  )}
+                  
+                  {isLoading || isLoadingTemplates ? (
+                    <Box sx={{ textAlign: 'center', py: 6 }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : activeTab === 'portfolios' && filteredPortfolios.length > 0 ? (
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+                      {filteredPortfolios.map((portfolio, index) => (
+                        <Box key={index}>
+                          <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardHeader
+                              title={portfolio.title}
+                              subheader={formatDate(portfolio.updatedAt)}
+                              action={
+                                <Chip
+                                  label={portfolio.isPublished ? 'Published' : 'Draft'}
+                                  color={portfolio.isPublished ? 'success' : 'warning'}
+                                  size="small"
+                                />
+                              }
+                            />
+                            <CardMedia
+                              component="img"
+                              height="140"
+                              image={portfolio.thumbnail || '/default-portfolio-thumbnail.png'}
+                              alt={portfolio.title}
+                            />
+                            <CardContent>
+                              <Typography variant="body2" color="text.secondary">
                                 {portfolio.description}
                               </Typography>
-                            </Box>
-                            <Chip 
-                              label={portfolio.isPublished ? 'Published' : 'Draft'}
-                              color={portfolio.isPublished ? 'success' : 'warning'}
-                              size="small"
-                              variant="outlined"
-                            />
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              Template: {portfolio.template}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">•</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Last updated: {portfolio.updatedAt ? formatDate(portfolio.updatedAt) : 'N/A'}
-                            </Typography>
-                            {portfolio.isPublished && (
-                              <>
-                                <Typography variant="caption" color="text.secondary">•</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  Visits: {portfolio.visits}
-                                </Typography>
-                              </>
-                            )}
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            <Button 
-                              size="small" 
-                              variant="outlined"
-                              startIcon={<EditIcon />}
-                              onClick={() => handleEditPortfolio(portfolio.id)}
-                            >
-                              Edit
-                            </Button>
-                            
-                            <Button 
-                              size="small" 
-                              variant="outlined"
-                              startIcon={<VisibilityIcon />}
-                              onClick={() => handleViewPortfolio(portfolio)}
-                            >
-                              {portfolio.isPublished ? 'Visit' : 'Preview'}
-                            </Button>
-                            
-                            {portfolio.isPublished && (
-                              <Button 
-                                size="small" 
-                                variant="outlined"
-                                startIcon={<DownloadIcon />}
+                              <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip
+                                  label={`Visits: ${portfolio.visits || 0}`}
+                                  size="small"
+                                  color="primary"
+                                />
+                                <Chip
+                                  label={portfolio.template ? 'Custom Template' : 'Default Template'}
+                                  size="small"
+                                  color="info"
+                                />
+                              </Box>
+                            </CardContent>
+                            <CardActions>
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                  console.log('Edit portfolio clicked:', portfolio);
+                                  handleEditPortfolio(portfolio);
+                                }}
+                                startIcon={<EditIcon />}
                               >
-                                Export
+                                Edit
                               </Button>
-                            )}
-                            
-                            <Button 
-                              size="small" 
-                              variant="outlined"
-                              color="error"
-                              startIcon={<DeleteIcon />}
-                              onClick={() => {
-                                setPortfolioToDelete(portfolio);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                            >
-                              Delete
-                            </Button>
-                          </Box>
+                              <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => {
+                                  // Check for either id or _id (MongoDB style)
+                                  const portfolioId = portfolio.id || portfolio._id;
+                                  
+                                  if (!portfolioId) {
+                                    console.error('Portfolio missing ID:', portfolio);
+                                    alert('Cannot delete portfolio: This portfolio does not have a valid ID');
+                                    return;
+                                  }
+                                  
+                                  // Create a copy with a guaranteed ID field
+                                  const portfolioWithId = {
+                                    ...portfolio,
+                                    id: String(portfolioId) // Ensure ID is a string
+                                  };
+                                  
+                                  console.log('Setting portfolio to delete:', portfolioWithId);
+                                  setPortfolioToDelete(portfolioWithId);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                                startIcon={<DeleteIcon />}
+                              >
+                                Delete
+                              </Button>
+                              {portfolio.isPublished && (
+                                <Button
+                                  variant="outlined"
+                                  color="success"
+                                  onClick={() => handleViewPortfolio(portfolio)}
+                                  startIcon={<VisibilityIcon />}
+                                >
+                                  View
+                                </Button>
+                              )}
+                            </CardActions>
+                          </Card>
                         </Box>
-                      </Paper>
-                    ))}
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </Box>
+                  ) : activeTab === 'templates' && filteredTemplates.length > 0 ? (
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
+                      {filteredTemplates.map((template, index) => (
+                        <Box key={index}>
+                          <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardHeader
+                              title={template.name}
+                              subheader={template.category}
+                            />
+                            <CardMedia
+                              component="img"
+                              height="140"
+                              image={template.thumbnail}
+                              alt={template.name}
+                            />
+                            <CardContent>
+                              <Typography variant="body2" color="text.secondary">
+                                {template.description}
+                              </Typography>
+                              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                {template.tags.map((tag: string, idx: number) => (
+                                  <Chip
+                                    key={idx}
+                                    label={tag}
+                                    size="small"
+                                    sx={{ bgcolor: 'primary.light', color: 'primary.main' }}
+                                  />
+                                ))}
+                              </Box>
+                            </CardContent>
+                            <CardActions>
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                  console.log('Edit template clicked:', template);
+                                  handleEditTemplate(template);
+                                }}
+                                startIcon={<EditIcon />}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => {
+                                  console.log('Setting template to delete:', template);
+                                  setTemplateToDelete(template);
+                                  setIsDeleteTemplateDialogOpen(true);
+                                }}
+                                startIcon={<DeleteIcon />}
+                              >
+                                Delete
+                              </Button>
+                            </CardActions>
+                          </Card>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      py: 6,
+                      width: '100%'
+                    }}>
+                      <Typography color="text.secondary">
+                        {activeTab === 'portfolios' ? 'No portfolios found' : 'No custom templates found'}
+                      </Typography>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Box>
           </Grid>
-        </Grid>
-      </Container>
-    </Box>
-      
+        </Container>
+      </Box>
+
       {/* Create Portfolio Dialog */}
       <Dialog
-        open={isCreateDialogOpen} 
+        open={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         maxWidth="sm"
         fullWidth
@@ -488,9 +675,8 @@ export default function Dashboard() {
         <DialogTitle>Create New Portfolio</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 3 }}>
-            Create a new portfolio from scratch or using a template.
+            Create a new portfolio from scratch.
           </DialogContentText>
-          
           <Stack spacing={3} sx={{ mt: 1 }}>
             <TextField
               label="Portfolio Name"
@@ -499,7 +685,6 @@ export default function Dashboard() {
               value={newPortfolioName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPortfolioName(e.target.value)}
             />
-            
             <TextField
               label="Description (Optional)"
               fullWidth
@@ -507,118 +692,104 @@ export default function Dashboard() {
               value={newPortfolioDescription}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPortfolioDescription(e.target.value)}
             />
-            
-            <FormControl fullWidth>
-              <InputLabel id="template-select-label">Template</InputLabel>
-              {templateOptions.length > 0 ? (
-                <Select
-                  labelId="template-select-label"
-                  value={newPortfolioTemplate}
-                  onChange={(e) => setNewPortfolioTemplate(e.target.value as string)}
-                  label="Template"
-                >
-                  {templateOptions.map(option => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              ) : (
-                <Grid container spacing={2}>
-                  <Grid sx={{ gridColumn: 'span 6' }}>
-                    <Paper 
-                      sx={{
-                        p: 2, 
-                        cursor: 'pointer',
-                        border: newPortfolioTemplate === 'blank' ? '1px solid' : 'none',
-                        borderColor: 'primary.main',
-                        bgcolor: newPortfolioTemplate === 'blank' ? 'primary.light' : 'background.paper'
-                      }}
-                      onClick={() => setNewPortfolioTemplate('blank')}
-                      elevation={newPortfolioTemplate === 'blank' ? 3 : 1}
-                    >
-                      <Typography variant="subtitle1">Blank Canvas</Typography>
-                      <Typography variant="body2" color="text.secondary">Start from scratch</Typography>
-                    </Paper>
-                  </Grid>
-                  
-                  <Grid sx={{ gridColumn: 'span 6' }}>
-                    <Paper 
-                      sx={{
-                        p: 2, 
-                        cursor: 'pointer',
-                        border: newPortfolioTemplate === 'developer' ? '1px solid' : 'none',
-                        borderColor: 'primary.main',
-                        bgcolor: newPortfolioTemplate === 'developer' ? 'primary.light' : 'background.paper'
-                      }}
-                      onClick={() => setNewPortfolioTemplate('developer')}
-                      elevation={newPortfolioTemplate === 'developer' ? 3 : 1}
-                    >
-                      <Typography variant="subtitle1">Developer</Typography>
-                      <Typography variant="body2" color="text.secondary">For showcasing code projects</Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
-              )}
-            </FormControl>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button 
-            variant="outlined" 
-            onClick={() => setIsCreateDialogOpen(false)}
-          >
+          <Button onClick={() => setIsCreateDialogOpen(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleCreatePortfolio} 
-            disabled={!newPortfolioName.trim() || isLoadingAction}
-            startIcon={isLoadingAction ? <CircularProgress size={16} /> : null}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreatePortfolio}
+            disabled={!newPortfolioName.trim()}
           >
-            {isLoadingAction ? 'Creating...' : 'Create Portfolio'}
+            Create
           </Button>
         </DialogActions>
       </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
-      <Dialog 
-        open={isDeleteDialogOpen} 
+
+      {/* Delete Template Dialog */}
+      <Dialog
+        open={isDeleteTemplateDialogOpen}
+        onClose={() => setIsDeleteTemplateDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Delete Template</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this template?
+          </DialogContentText>
+          
+          {/* Template details outside of DialogContentText to avoid DOM nesting issues */}
+          {templateToDelete && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+              <Typography variant="subtitle2">Template Details:</Typography>
+              <Typography variant="body2">ID: {templateToDelete.id}</Typography>
+              <Typography variant="body2">Name: {templateToDelete.name}</Typography>
+              <Typography variant="body2">Custom: {templateToDelete.isCustom ? 'Yes' : 'No'}</Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDeleteTemplateDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              console.log('Delete button clicked');
+              console.log('Template to delete:', templateToDelete);
+              handleDeleteTemplate();
+            }}
+            color="error"
+            variant="contained"
+            disabled={isLoadingAction}
+          >
+            {isLoadingAction ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Portfolio Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
       >
         <DialogTitle>Delete Portfolio</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this portfolio? This action cannot be undone.
+            Are you sure you want to delete the portfolio "{portfolioToDelete?.title}"? This action cannot be undone.
           </DialogContentText>
           
+          {/* Portfolio details outside of DialogContentText to avoid DOM nesting issues */}
           {portfolioToDelete && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">{portfolioToDelete.title}</Typography>
-              <Typography variant="body2" color="text.secondary">{portfolioToDelete.description}</Typography>
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+              <Typography variant="subtitle2">Portfolio Details:</Typography>
+              <Typography variant="body2">ID: {portfolioToDelete.id || portfolioToDelete._id}</Typography>
+              <Typography variant="body2">Status: {portfolioToDelete.isPublished ? 'Published' : 'Draft'}</Typography>
+              <Typography variant="body2">Last Updated: {portfolioToDelete.updatedAt ? formatDate(portfolioToDelete.updatedAt) : 'N/A'}</Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button 
-            variant="outlined" 
-            onClick={() => setIsDeleteDialogOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={handleDeletePortfolio}
+          <Button onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              console.log('Delete portfolio button clicked');
+              console.log('Portfolio to delete:', portfolioToDelete);
+              handleDeletePortfolio();
+            }}
+            color="error"
+            variant="contained"
             disabled={isLoadingAction}
-            startIcon={isLoadingAction ? <CircularProgress size={16} /> : null}
           >
-            {isLoadingAction ? 'Deleting...' : 'Delete Portfolio'}
+            {isLoadingAction ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
     </>
   );
 }
+
+export default Dashboard;

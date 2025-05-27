@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { Portfolio, PortfolioSection, SectionType } from '@/types';
 import {
   Box,
-  Typography,
   Button,
   Dialog,
   DialogTitle,
@@ -11,12 +10,12 @@ import {
   DialogActions,
   TextField,
   InputAdornment,
-  Paper,
-  IconButton,
-  Grid,
+  Typography,
+  CircularProgress,
   Divider,
   Stack,
-  CircularProgress
+  Paper,
+  IconButton,
 } from '@mui/material';
 import {
   Person as UserIcon,
@@ -30,7 +29,8 @@ import {
   Language as GlobeIcon,
   Save as SaveIcon,
   Delete as TrashIcon,
-  DragIndicator as GripVerticalIcon
+  DragIndicator as GripVerticalIcon,
+  Check as CheckIcon,
 } from '@mui/icons-material';
 
 interface EditorSidebarProps {
@@ -43,6 +43,7 @@ interface EditorSidebarProps {
   savePortfolio: () => Promise<any>;
   exportPortfolio: () => Promise<void>;
   deployPortfolio: (subdomain: string) => Promise<any>;
+  deletePortfolio: (id: string) => Promise<void>;
   isSaving: boolean;
 }
 
@@ -59,13 +60,13 @@ interface DraggableSectionProps {
   moveSection: (dragIndex: number, hoverIndex: number) => void;
 }
 
-const DraggableSection = ({ 
-  section, 
-  index, 
-  isSelected, 
-  onSelect, 
-  onRemove, 
-  moveSection 
+const DraggableSection = ({
+  section,
+  index,
+  isSelected,
+  onSelect,
+  onRemove,
+  moveSection,
 }: DraggableSectionProps) => {
   const [{ isDragging }, drag, preview] = useDrag({
     type: SECTION_ITEM_TYPE,
@@ -79,15 +80,15 @@ const DraggableSection = ({
     accept: SECTION_ITEM_TYPE,
     hover: (item: { index: number }, monitor) => {
       if (!monitor.isOver({ shallow: true })) return;
-      
+
       const dragIndex = item.index;
       const hoverIndex = index;
-      
+
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) return;
-      
+
       moveSection(dragIndex, hoverIndex);
-      
+
       // Update the item's index
       item.index = hoverIndex;
     },
@@ -122,17 +123,16 @@ const DraggableSection = ({
       sx={{
         display: 'flex',
         alignItems: 'center',
+        gap: 1,
         p: 1,
-        mb: 1,
-        cursor: 'pointer',
         bgcolor: isSelected ? 'primary.light' : 'background.paper',
         border: isSelected ? 1 : 0,
         borderColor: 'primary.main',
         borderRadius: 1,
         opacity: isDragging ? 0.5 : 1,
         '&:hover': {
-          bgcolor: isSelected ? 'primary.light' : 'action.hover'
-        }
+          bgcolor: isSelected ? 'primary.light' : 'action.hover',
+        },
       }}
       onClick={onSelect}
     >
@@ -152,7 +152,7 @@ const DraggableSection = ({
         sx={{
           opacity: 0,
           '&:hover': { opacity: 1, color: 'error.main' },
-          '.MuiPaper-root:hover &': { opacity: 0.7 }
+          '.MuiPaper-root:hover &': { opacity: 0.7 },
         }}
       >
         <TrashIcon fontSize="small" />
@@ -171,254 +171,346 @@ export default function EditorSidebar({
   savePortfolio,
   exportPortfolio,
   deployPortfolio,
-  isSaving
+  deletePortfolio,
+  isSaving,
 }: EditorSidebarProps) {
-  const [subdomain, setSubdomain] = useState(portfolio.subdomain || '');
+  const [subdomain, setSubdomain] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Handle deploy
+  const handleDeploy = async () => {
+    if (!subdomain) return;
+    setIsDeploying(true);
+    try {
+      await deployPortfolio(subdomain);
+      setDeployDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to deploy portfolio:', error);
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async () => {
+    try {
+      await deletePortfolio(portfolio.id as string);
+      // Navigate away or show success message
+    } catch (error) {
+      console.error('Failed to delete portfolio:', error);
+    } finally {
+      setDeleteDialogOpen(false);
+    }
+  };
 
   // Handle section reordering
   const moveSection = (dragIndex: number, hoverIndex: number) => {
     reorderSections(dragIndex, hoverIndex);
   };
 
-  // Handle deploy
-  const handleDeploy = async () => {
-    setIsDeploying(true);
-    try {
-      await deployPortfolio(subdomain);
-      setDeployDialogOpen(false);
-    } finally {
-      setIsDeploying(false);
-    }
-  };
-
   return (
-    <Box 
-      sx={{ 
-        height: 'calc(100vh - 80px)', 
-        overflowY: 'auto', 
-        display: 'flex', 
-        flexDirection: 'column',
-        p: 2
-      }}
-    >
-      <Typography variant="h6" sx={{ mb: 3 }}>Portfolio Builder</Typography>
-      
-      {/* Add Section */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>Add Section</Typography>
-        <Grid container spacing={1}>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<UserIcon />}
-              onClick={() => addSection('about')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              About Me
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<CodeIcon />}
-              onClick={() => addSection('projects')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              Projects
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<AwardIcon />}
-              onClick={() => addSection('skills')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              Skills
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<FileTextIcon />}
-              onClick={() => addSection('resume')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              Resume
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<MessageSquareIcon />}
-              onClick={() => addSection('testimonials')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              Testimonials
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<BookOpenIcon />}
-              onClick={() => addSection('blog')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              Blog
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              size="small"
-              fullWidth
-              startIcon={<MailIcon />}
-              onClick={() => addSection('contact')}
-              sx={{ justifyContent: 'flex-start' }}
-            >
-              Contact
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
-      
-      {/* Sections List */}
-      <Box sx={{ flexGrow: 1, mb: 3 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>Sections</Typography>
-        <Stack spacing={1}>
-          {portfolio.sections.length === 0 ? (
-            <Paper 
-              variant="outlined" 
-              sx={{ 
-                p: 2, 
-                textAlign: 'center',
-                borderStyle: 'dashed',
-                bgcolor: 'background.default'
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                No sections added yet. Add a section to get started.
-              </Typography>
-            </Paper>
-          ) : (
-            portfolio.sections
-              .sort((a, b) => a.order - b.order)
-              .map((section, index) => (
-                <DraggableSection
-                  key={section.id}
-                  section={section}
-                  index={index}
-                  isSelected={selectedSection === section.id}
-                  onSelect={() => setSelectedSection(section.id)}
-                  onRemove={() => removeSection(section.id)}
-                  moveSection={moveSection}
-                />
-              ))
-          )}
-        </Stack>
-      </Box>
-      
-      {/* Actions */}
-      <Box>
-        <Divider sx={{ mb: 2 }} />
-        <Stack spacing={1}>
-          <Button 
-            variant="contained" 
-            fullWidth
-            startIcon={isSaving ? <CircularProgress size={16} /> : <SaveIcon />}
-            onClick={savePortfolio}
-            disabled={isSaving}
-            sx={{ justifyContent: 'flex-start' }}
-          >
-            {isSaving ? 'Saving...' : 'Save Portfolio'}
-          </Button>
-          
-          <Button 
-            variant="outlined" 
-            fullWidth
-            startIcon={<DownloadIcon />}
-            onClick={exportPortfolio}
-            sx={{ justifyContent: 'flex-start' }}
-          >
-            Export as HTML
-          </Button>
-          
-          <Button 
-            variant="outlined" 
-            fullWidth
-            startIcon={<GlobeIcon />}
-            onClick={() => setDeployDialogOpen(true)}
-            sx={{ justifyContent: 'flex-start' }}
-          >
-            Deploy to Subdomain
-          </Button>
-          
-          <Dialog 
-            open={deployDialogOpen} 
-            onClose={() => !isDeploying && setDeployDialogOpen(false)}
-            maxWidth="xs"
-            fullWidth
-          >
-            <DialogTitle>Deploy to Subdomain</DialogTitle>
-            <DialogContent>
-              <Box sx={{ pt: 1 }}>
-                <Typography variant="body2" gutterBottom>Enter a subdomain for your portfolio</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'flex-end', mt: 2 }}>
-                  <TextField
-                    fullWidth
-                    label="Subdomain"
-                    value={subdomain}
-                    onChange={(e) => setSubdomain(e.target.value)}
-                    placeholder="yourname"
-                    variant="outlined"
-                    size="small"
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Typography variant="body2" color="text.secondary">
-                            .portfoliohub.app
-                          </Typography>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Box>
+    <>
+      <Box
+        sx={{
+          height: 'calc(100vh - 80px)',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          p: 2,
+        }}
+      >
+        <Typography variant="h6" sx={{ mb: 3 }}>
+          Portfolio Builder
+        </Typography>
+
+        {/* Add Section */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Add Section
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<UserIcon />}
+                onClick={() => addSection('about')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                About Me
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<CodeIcon />}
+                onClick={() => addSection('projects')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Projects
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<AwardIcon />}
+                onClick={() => addSection('skills')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Skills
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<FileTextIcon />}
+                onClick={() => addSection('resume')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Resume
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<MessageSquareIcon />}
+                onClick={() => addSection('testimonials')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Testimonials
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<BookOpenIcon />}
+                onClick={() => addSection('blog')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Blog
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                startIcon={<MailIcon />}
+                onClick={() => addSection('contact')}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Contact
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Sections List */}
+        <Box sx={{ flexGrow: 1, mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Sections
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {portfolio.sections.length === 0 ? (
+              <Box sx={{ p: 2, textAlign: 'center', borderStyle: 'dashed', bgcolor: 'background.default' }}>
+                <Typography variant="body2" color="text.secondary">
+                  No sections added yet. Add a section to get started.
+                </Typography>
               </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button 
-                variant="outlined" 
-                onClick={() => setDeployDialogOpen(false)}
-                disabled={isDeploying}
+            ) : (
+              portfolio.sections
+                .sort((a, b) => a.order - b.order)
+                .map((section, index) => (
+                  <Box
+                    key={section.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 1,
+                      bgcolor: 'background.paper',
+                      borderRadius: 1,
+                    }}
+                  >
+                    <IconButton
+                      onClick={() => setSelectedSection(section.id)}
+                      size="small"
+                    >
+                      {selectedSection === section.id ? <CheckIcon fontSize="small" /> : null}
+                    </IconButton>
+                    <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                      {section.title}
+                    </Typography>
+                    <IconButton
+                      onClick={() => removeSection(section.id)}
+                      size="small"
+                    >
+                      <TrashIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))
+            )}
+          </Box>
+        </Box>
+
+        {/* Actions */}
+        <Box>
+          <Divider sx={{ mb: 2 }} />
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={isSaving ? <CircularProgress size={16} /> : <SaveIcon />}
+                onClick={savePortfolio}
+                disabled={isSaving}
+                sx={{ justifyContent: 'flex-start' }}
               >
-                Cancel
+                {isSaving ? 'Saving...' : 'Save Portfolio'}
               </Button>
-              <Button 
-                variant="contained" 
-                onClick={handleDeploy} 
-                disabled={isDeploying || !subdomain}
-                startIcon={isDeploying ? <CircularProgress size={16} /> : null}
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<DownloadIcon />}
+                onClick={exportPortfolio}
+                sx={{ justifyContent: 'flex-start' }}
               >
-                {isDeploying ? 'Deploying...' : 'Deploy'}
+                Export as HTML
               </Button>
-            </DialogActions>
-          </Dialog>
-        </Stack>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<GlobeIcon />}
+                onClick={() => setDeployDialogOpen(true)}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Deploy to Subdomain
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                startIcon={<TrashIcon />}
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={isSaving}
+                sx={{ justifyContent: 'flex-start' }}
+              >
+                Delete Portfolio
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       </Box>
-    </Box>
+
+      {/* Deploy Dialog */}
+      <Dialog
+        open={deployDialogOpen}
+        onClose={() => !isDeploying && setDeployDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Deploy to Subdomain</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <Typography variant="body2" gutterBottom>
+              Enter a subdomain for your portfolio
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', mt: 2 }}>
+              <TextField
+                fullWidth
+                label="Subdomain"
+                placeholder="yourname"
+                variant="outlined"
+                size="small"
+                value={subdomain}
+                onChange={(e) => setSubdomain(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Typography variant="body2" color="text.secondary">
+                        .portfoliohub.app
+                      </Typography>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            onClick={() => setDeployDialogOpen(false)}
+            disabled={isDeploying}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleDeploy}
+            disabled={isDeploying || !subdomain}
+            startIcon={isDeploying ? <CircularProgress size={16} /> : null}
+          >
+            {isDeploying ? 'Deploying...' : 'Deploy'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete Portfolio</DialogTitle>
+        <DialogContent>
+          <Box sx={{ width: '100%' }}>
+            <Typography variant="h6" gutterBottom>
+              Delete Portfolio
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Are you sure you want to delete this portfolio? This action cannot be undone.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            onClick={() => setDeleteDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDelete}
+            disabled={isSaving}
+            startIcon={isSaving ? <CircularProgress size={16} /> : null}
+          >
+            {isSaving ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
