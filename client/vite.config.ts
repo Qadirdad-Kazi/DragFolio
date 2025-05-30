@@ -88,7 +88,29 @@ export default defineConfig({
       output: {
         // Ensure that inline scripts and styles are allowed in the build
         inlineDynamicImports: true,
+        manualChunks: {
+          vendor: [
+            'react', 
+            'react-dom',
+            '@mui/material',
+            'react-dnd',
+            'react-dnd-html5-backend'
+          ],
+        },
       },
     },
+    // Generate source maps for better debugging
+    sourcemap: true,
+    // Optimize the build for production
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
+  },
+  // Define environment variables for the build
+  define: {
+    'process.env': {},
   },
 });

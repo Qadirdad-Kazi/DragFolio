@@ -34,14 +34,48 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://dragfolio.app' 
-    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177'],
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    // Get allowed origins from environment variable or use defaults
+    const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || '';
+    
+    // Default development origins
+    const devOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176',
+      'http://localhost:5177'
+    ];
+    
+    // Parse comma-separated origins from environment variable
+    const prodOrigins = allowedOriginsEnv.split(',').map(origin => origin.trim()).filter(Boolean);
+    
+    // Use production origins if in production, otherwise use development origins
+    const allowedOrigins = process.env.NODE_ENV === 'production' ? prodOrigins : devOrigins;
+    
+    // In development mode, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // In production, check against the allowed origins list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked request from:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Log CORS configuration
-console.log('CORS configured for development:', ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177']);
+console.log('CORS configured for:', process.env.NODE_ENV === 'production' ? 'production' : 'development');
 
 // Session configuration
 app.use(session({
