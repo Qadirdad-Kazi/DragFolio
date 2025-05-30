@@ -2,7 +2,7 @@ import { Portfolio, Template, Section, Theme } from '@/types';
 
 // Helper to determine the API URL based on environment
 const determineApiUrl = () => {
-  // Check for explicit API URL from environment variables
+  // Always prioritize the environment variable
   const envApiUrl = import.meta.env.VITE_API_URL;
   if (envApiUrl) {
     console.log('Using API URL from environment:', envApiUrl);
@@ -12,16 +12,14 @@ const determineApiUrl = () => {
   const isProd = import.meta.env.MODE === 'production';
   console.log('Environment mode:', isProd ? 'production' : 'development');
   
-  // If in production and no explicit API URL is set, use Vercel deployment URL
+  // If in production and no explicit API URL is set, log a warning
   if (isProd) {
-    // Use the main Vercel domain
-    const vercelUrl = 'https://drag-folio.vercel.app/api';
-    console.log('No VITE_API_URL found, using fallback URL:', vercelUrl);
-    return vercelUrl;
+    console.warn('WARNING: VITE_API_URL environment variable is not set in production!');
+    console.warn('Using fallback relative URL /api - this may not work correctly');
   }
   
-  // In development, use the /api prefix that will be handled by Vite's proxy
-  console.log('Using development API URL: /api');
+  // In development or as fallback, use the /api prefix
+  console.log('Using API URL: /api');
   return '/api';
 };
 

@@ -178,12 +178,21 @@ const ConnectionTest: React.FC = () => {
     // Test endpoints
     const endpoints = ['/api/templates', '/api/health', '/api/auth/status'];
     
-    // Test all three Vercel domains
-    const vercelDomains = [
-      'https://drag-folio.vercel.app',
-      'https://drag-folio-git-main-qadirdad-kazis-projects.vercel.app',
-      'https://drag-folio-ax52suqvy-qadirdad-kazis-projects.vercel.app'
-    ];
+    // Get potential backend domains from environment or use defaults for testing
+    const envApiUrl = import.meta.env.VITE_API_URL || '';
+    const baseApiDomain = envApiUrl.split('/api')[0];
+    
+    // Create a list of domains to test, starting with the environment variable if available
+    const vercelDomains = [];
+    
+    if (baseApiDomain) {
+      vercelDomains.push(baseApiDomain);
+    }
+    
+    // Add common Vercel deployment domains as fallbacks for testing
+    if (!vercelDomains.includes('https://drag-folio.vercel.app')) {
+      vercelDomains.push('https://drag-folio.vercel.app');
+    }
     
     // First test the current API URL
     for (const endpoint of endpoints) {

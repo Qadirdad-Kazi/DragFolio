@@ -82,16 +82,47 @@ app.use((req, res, next) => {
 // Registration control middleware
 app.use(createMiddleware());
 
-// Add CORS headers directly for maximum compatibility
+// Configure CORS based on environment variables
 app.use((req, res, next) => {
-  // Set CORS headers
-  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins since we're not using credentials
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  // Get allowed origins from environment variable
+  const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || '';
+  const allowedOrigins = allowedOriginsEnv.split(',').map(origin => origin.trim()).filter(Boolean);
+  
+  // Get the origin from the request headers
+  const origin = req.headers.origin;
+  console.log('Request origin:', origin);
+  
+  // Determine if we should use strict CORS in production
+  const useStrictCors = process.env.NODE_ENV === 'production' && allowedOrigins.length > 0;
+  
+  if (useStrictCors) {
+    // Production mode with specific allowed origins
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      console.log(`Origin ${origin} is allowed by CORS configuration`);
+    } else {
+      // For preflight requests, still respond with 200 but don't set the CORS headers
+      // This effectively blocks the actual request but allows the preflight to succeed
+      if (req.method !== 'OPTIONS') {
+        console.log(`Origin ${origin} is not in the allowed list:`, allowedOrigins);
+      }
+      res.header('Access-Control-Allow-Origin', 'null'); // Effectively blocks the request
+    }
+  } else {
+    // Development mode or no allowed origins specified - allow all origins
+    res.header('Access-Control-Allow-Origin', '*');
+    console.log('CORS in development mode or no allowed origins - allowing all origins');
+  }
+  
+  // Common headers for all environments
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Client-Performance-Metrics');
-  res.header('Access-Control-Allow-Credentials', 'false'); // Match client-side credentials: 'omit'
-
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  res.header('Access-Control-Allow-Credentials', 'false');
+  
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
     res.status(200).end();
     return;
   }
@@ -100,15 +131,45 @@ app.use((req, res, next) => {
 });
 
 // Log CORS configuration
-console.log('CORS configured with manual headers for maximum compatibility');
-
-// Database connection
-const DATABASE_URL = process.env.DATABASE_URL || '';
-if (DATABASE_URL) {
-  mongoose.connect(DATABASE_URL)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+console.log('CORS configured with environment-based settings');
+if (process.env.ALLOWED_ORIGINS) {
+  console.log('Allowed origins:', process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean));
+} else {
+  console.log('No ALLOWED_ORIGINS environment variable set - allowing all origins');
 }
+
+// Database connection with retry logic
+const connectToDatabase = async (retryCount = 0, maxRetries = 5) => {
+  const DATABASE_URL = process.env.DATABASE_URL || '';
+  if (!DATABASE_URL) {
+    console.error('DATABASE_URL environment variable is not set');
+    return;
+  }
+  
+  try {
+    console.log(`Attempting to connect to MongoDB (attempt ${retryCount + 1}/${maxRetries + 1})`);
+    await mongoose.connect(DATABASE_URL, {
+      serverSelectionTimeoutMS: 10000, // Timeout after 10 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      retryWrites: true,
+      w: 'majority'
+    });
+    console.log('Successfully connected to MongoDB');
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    
+    if (retryCount < maxRetries) {
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff with max 10s
+      console.log(`Retrying connection in ${delay}ms...`);
+      setTimeout(() => connectToDatabase(retryCount + 1, maxRetries), delay);
+    } else {
+      console.error('Maximum MongoDB connection retries reached. Giving up.');
+    }
+  }
+};
+
+// Attempt to connect to the database
+connectToDatabase();
 
 // Routes
 app.use('/api/auth', authRouter);
