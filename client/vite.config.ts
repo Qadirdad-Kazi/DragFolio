@@ -94,7 +94,8 @@ export default defineConfig({
             'react-dom',
             '@mui/material',
             'react-dnd',
-            'react-dnd-html5-backend'
+            'react-dnd-html5-backend',
+            'jspdf'
           ],
         },
       },
@@ -107,6 +108,11 @@ export default defineConfig({
       compress: {
         drop_console: true,
       },
+    },
+    // Ensure dynamic imports are properly handled
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
     },
   },
   // Define environment variables for the build

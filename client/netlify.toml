@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install && npm install jspdf html2canvas --save && npm run build"
   publish = "dist"
   
 [build.environment]
