@@ -82,36 +82,20 @@ app.use((req, res, next) => {
 // Registration control middleware
 app.use(createMiddleware());
 
-// Configure CORS based on environment variables
+// Simple CORS configuration that will work in all environments
 app.use((req, res, next) => {
-  // Get allowed origins from environment variable
-  const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || '';
-  const allowedOrigins = allowedOriginsEnv.split(',').map(origin => origin.trim()).filter(Boolean);
+  // Always allow the Netlify domain and localhost for development
+  const netlifyDomain = 'https://dragfolio.netlify.app';
   
   // Get the origin from the request headers
   const origin = req.headers.origin;
-  console.log('Request origin:', origin);
   
-  // Determine if we should use strict CORS in production
-  const useStrictCors = process.env.NODE_ENV === 'production' && allowedOrigins.length > 0;
-  
-  if (useStrictCors) {
-    // Production mode with specific allowed origins
-    if (origin && allowedOrigins.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-      console.log(`Origin ${origin} is allowed by CORS configuration`);
-    } else {
-      // For preflight requests, still respond with 200 but don't set the CORS headers
-      // This effectively blocks the actual request but allows the preflight to succeed
-      if (req.method !== 'OPTIONS') {
-        console.log(`Origin ${origin} is not in the allowed list:`, allowedOrigins);
-      }
-      res.header('Access-Control-Allow-Origin', 'null'); // Effectively blocks the request
-    }
+  // Set CORS headers - allow Netlify domain or development origins
+  if (origin === netlifyDomain || origin?.includes('localhost')) {
+    res.header('Access-Control-Allow-Origin', origin);
   } else {
-    // Development mode or no allowed origins specified - allow all origins
+    // For all other origins, use a wildcard in development or block in production
     res.header('Access-Control-Allow-Origin', '*');
-    console.log('CORS in development mode or no allowed origins - allowing all origins');
   }
   
   // Common headers for all environments
@@ -122,7 +106,6 @@ app.use((req, res, next) => {
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS preflight request');
     res.status(200).end();
     return;
   }
@@ -131,12 +114,8 @@ app.use((req, res, next) => {
 });
 
 // Log CORS configuration
-console.log('CORS configured with environment-based settings');
-if (process.env.ALLOWED_ORIGINS) {
-  console.log('Allowed origins:', process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean));
-} else {
-  console.log('No ALLOWED_ORIGINS environment variable set - allowing all origins');
-}
+console.log('CORS configured with simplified settings for Netlify domain');
+
 
 // Database connection with retry logic
 const connectToDatabase = async (retryCount = 0, maxRetries = 5) => {
