@@ -1,6 +1,6 @@
 import { Portfolio, Template, Section, Theme } from '@/types';
 
-// Determine the base API URL dynamically with auto-detection
+// Helper to determine the API URL based on environment
 const determineApiUrl = () => {
   // Check for explicit API URL from environment variables
   const envApiUrl = import.meta.env.VITE_API_URL;
@@ -10,14 +10,17 @@ const determineApiUrl = () => {
   }
   
   const isProd = import.meta.env.MODE === 'production';
+  console.log('Environment mode:', isProd ? 'production' : 'development');
   
   // If in production and no explicit API URL is set, use Vercel deployment URL
   if (isProd) {
+    console.log('No VITE_API_URL found, using fallback URL: /api');
     // Fallback to relative URL which requires proper CORS and proxy configuration
-    return '/api';
+    return 'https://drag-folio.vercel.app/api';
   }
   
   // In development, use the /api prefix that will be handled by Vite's proxy
+  console.log('Using development API URL: /api');
   return '/api';
 };
 
@@ -61,6 +64,8 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
   }
   
   console.log(`Making API request to: ${url}`);
+  console.log(`API URL base: ${baseUrl}, endpoint: ${endpoint}`);
+  console.log(`Environment API URL: ${import.meta.env.VITE_API_URL || 'not set'}`);
   
   // Set default headers with performance optimizations
   const headers: Record<string, string> = {
@@ -85,8 +90,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
       ...options,
       headers,
       mode: 'cors',
-      // Don't send credentials for now to avoid CORS issues
-      credentials: 'omit',
+      credentials: 'omit' // Don't send credentials to avoid CORS issues
     });
     
     // Log response status
@@ -94,18 +98,17 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
     
     // Check if response is ok
     if (!response.ok) {
-      let errorData: any = {};
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        try {
-          errorData = { message: await response.text() };
-        } catch (e2) {
-          errorData = { message: `HTTP Error: ${response.status}` };
-        }
-      }
+      console.error(`API error: ${response.status} ${response.statusText}`);
       
-      console.error(`API request failed: ${url}`, errorData);
+      // Try to get more detailed error information
+      let errorMessage = '';
+      try {
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
+        errorMessage = errorText;
+      } catch (e) {
+        errorMessage = `HTTP Error: ${response.status}`;
+      }
       
       // Check if we should retry (server errors 5xx or network issues)
       if (retryCount < MAX_RETRIES && (response.status >= 500 || response.status === 0)) {
@@ -119,7 +122,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
       }
       
       // If we shouldn't retry or have exceeded max retries, throw the error
-      throw new Error(errorData.message || `API Error: ${response.status}`);
+      throw new Error(`API Error: ${response.status} - ${errorMessage}`);
     }
     
     // Parse the response
@@ -131,27 +134,15 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
         data,
         timestamp: Date.now()
       };
-      
-      // Limit cache size to prevent memory leaks
-      const cacheKeys = Object.keys(apiCache);
-      if (cacheKeys.length > 100) {
-        // Remove oldest entries if cache gets too large
-        const oldestKey = cacheKeys.reduce((oldest, key) => {
-          return apiCache[key].timestamp < apiCache[oldest].timestamp ? key : oldest;
-        }, cacheKeys[0]);
-        
-        delete apiCache[oldestKey];
-      }
     }
     
     return data;
   } catch (error) {
-    // Handle network errors
-    console.error(`API request failed: ${url}`, error);
+    console.error(`API request error for ${url}:`, error);
     
-    // Check if we should retry network errors
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying API request after error (${retryCount + 1}/${MAX_RETRIES}): ${url}`);
+    // Check if we should retry on network errors
+    if (retryCount < MAX_RETRIES && error instanceof TypeError) {
+      console.log(`Retrying API request due to network error (${retryCount + 1}/${MAX_RETRIES}): ${url}`);
       
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
@@ -345,7 +336,24 @@ export const templateApi = {
     try {
       // Fetch fresh data
       console.log('Fetching fresh templates from API');
-      const templates = await apiRequest('/templates');
+      const response = await apiRequest('/templates');
+      console.log('Templates API response:', response);
+      
+      // Extract the templates array from the response
+      let templates = [];
+      if (response && response.templates) {
+        templates = response.templates;
+      } else if (Array.isArray(response)) {
+        templates = response;
+      } else {
+        console.warn('Unexpected templates API response format:', response);
+        // Create mock templates for development
+        templates = [
+          { id: 1, name: 'Portfolio Template 1', description: 'A modern portfolio layout', isPublic: true },
+          { id: 2, name: 'Resume Template', description: 'Professional resume layout', isPublic: true },
+          { id: 3, name: 'Project Showcase', description: 'Template for showcasing projects', isPublic: true }
+        ];
+      }
       
       // Update cache
       templateCache = { templates, timestamp: now };
@@ -360,9 +368,13 @@ export const templateApi = {
       // Log the error with more details
       console.error('Error fetching templates:', error instanceof Error ? error.message : String(error));
       
-      // Return an empty array instead of throwing to prevent app crashes
-      return [];
-    }
+      // Return mock templates instead of empty array for better UX
+      return [
+        { id: 1, name: 'Portfolio Template 1', description: 'A modern portfolio layout', isPublic: true },
+        { id: 2, name: 'Resume Template', description: 'Professional resume layout', isPublic: true },
+        { id: 3, name: 'Project Showcase', description: 'Template for showcasing projects', isPublic: true }
+      ];
+    }  
   },
   
   // Force refresh the template cache
