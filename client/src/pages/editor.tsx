@@ -6,9 +6,11 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import EditorSidebar from '@/components/editor/EditorSidebar';
 import EditorCanvas from '@/components/editor/EditorCanvas';
 import EditorSettings from '@/components/editor/EditorSettings';
+import ExportModal from '@/components/editor/ExportModal';
 // import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getDefaultTitle, getDefaultContent, reorder } from '@/lib/utils';
+import { downloadPortfolioHtml, downloadPortfolioPdf } from '@/lib/exportUtils';
 import { SectionType, PortfolioSection, PortfolioTheme, Portfolio, PreviewDeviceType } from '@/types';
 
 export default function Editor() {
@@ -19,13 +21,37 @@ export default function Editor() {
   // Extract portfolio ID from URL query parameters
   const getPortfolioId = () => {
     // First check if we have an ID in the URL path
-    if (paramId) return paramId;
+    if (paramId && paramId !== 'undefined') {
+      console.log('Using portfolio ID from URL path:', paramId);
+      return paramId;
+    }
+    
+    // Check if we have stored template data with an ID
+    const storedTemplateData = localStorage.getItem('selectedTemplateData');
+    if (storedTemplateData) {
+      try {
+        const templateData = JSON.parse(storedTemplateData);
+        if (templateData && templateData.id) {
+          console.log('Using portfolio ID from stored template data:', templateData.id);
+          return templateData.id;
+        }
+      } catch (e) {
+        console.error('Error parsing stored template data:', e);
+      }
+    }
     
     // Otherwise, check for ID in query parameters
     const searchParams = new URLSearchParams(
       location.includes('?') ? location.split('?')[1] : ''
     );
-    return searchParams.get('id') || '';
+    const queryId = searchParams.get('id');
+    if (queryId && queryId !== 'undefined') {
+      console.log('Using portfolio ID from query parameters:', queryId);
+      return queryId;
+    }
+    
+    console.log('No valid portfolio ID found');
+    return null; // Return null instead of empty string to clearly indicate no valid ID
   };
   
   const portfolioId = getPortfolioId();
@@ -37,8 +63,8 @@ export default function Editor() {
     sections: [],
     theme: {
       mode: 'light',
-      primaryColor: '#3490dc',
-      secondaryColor: '#ffed4a',
+      primaryColor: '#2563eb', // Professional blue
+      secondaryColor: '#64748b', // Slate gray - more professional than yellow
       fontFamily: 'Inter, sans-serif',
       fontSize: '16px'
     },
@@ -56,6 +82,10 @@ export default function Editor() {
   
   // State for saving
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  
+  // State for export modal
+  const [exportModalOpen, setExportModalOpen] = useState<boolean>(false);
+  const [exportType, setExportType] = useState<'html' | 'pdf'>('html');
 
   // Load portfolio data or initialize from template
   useEffect(() => {
@@ -63,10 +93,13 @@ export default function Editor() {
     const searchParams = new URLSearchParams(location.includes('?') ? location.split('?')[1] : '');
     const templateId = searchParams.get('template');
     
+    // Check if we have template data in localStorage
+    const storedTemplateData = localStorage.getItem('selectedTemplateData');
+    
     if (templateId) {
-      // Initialize from template
+      // Initialize from template ID in URL
       setIsLoading(true);
-      console.log('Initializing portfolio from template:', templateId);
+      console.log('Initializing portfolio from template ID in URL:', templateId);
       
       portfolioApi.create({
         title: 'New Portfolio',
@@ -101,32 +134,115 @@ export default function Editor() {
       })
       .finally(() => {
         setIsLoading(false);
+        // Clear template data from localStorage after using it
+        localStorage.removeItem('selectedTemplateData');
       });
     } else if (portfolioId) {
       // Load existing portfolio
       setIsLoading(true);
       console.log('Loading portfolio with ID:', portfolioId);
       
-      portfolioApi.getById(portfolioId)
-        .then(data => {
-          console.log('Portfolio data loaded:', data);
-          setPortfolio(data);
-          // Select the first section if available
-          if (data.sections && data.sections.length > 0) {
-            setSelectedSection(data.sections[0].id);
+      // Check if we have stored template data for this portfolio ID
+      if (storedTemplateData) {
+        try {
+          const templateData = JSON.parse(storedTemplateData);
+          
+          // Verify this is the correct portfolio
+          if (templateData.id === portfolioId) {
+            console.log('Found stored template data for portfolio:', templateData);
+            
+            // Load portfolio from API first to get the latest data
+            portfolioApi.getById(portfolioId)
+              .then(data => {
+                console.log('Portfolio data loaded from API:', data);
+                
+                // If the portfolio has no sections or is missing theme data,
+                // use the template data we stored
+                if (!data.sections || data.sections.length === 0) {
+                  console.log('Using stored template sections:', templateData.sections);
+                  data.sections = templateData.sections;
+                }
+                
+                if (!data.theme || Object.keys(data.theme).length === 0) {
+                  console.log('Using stored template theme:', templateData.theme);
+                  data.theme = templateData.theme;
+                }
+                
+                setPortfolio(data);
+                
+                // Select the first section if available
+                if (data.sections && data.sections.length > 0) {
+                  setSelectedSection(data.sections[0].id);
+                }
+                
+                // Clear template data from localStorage after using it
+                localStorage.removeItem('selectedTemplateData');
+              })
+              .catch(error => {
+                console.error('Error loading portfolio:', error);
+                toast({
+                  title: 'Error',
+                  description: 'Failed to load portfolio. Please try again.',
+                  variant: 'destructive'
+                });
+              })
+              .finally(() => {
+                setIsLoading(false);
+              });
+            return; // Exit early since we're handling the loading separately
           }
-        })
-        .catch(error => {
-          console.error('Error loading portfolio:', error);
-          toast({
-            title: 'Error',
-            description: 'Failed to load portfolio. Please try again.',
-            variant: 'destructive'
+        } catch (e) {
+          console.error('Error parsing stored template data:', e);
+          // Continue with normal portfolio loading if there's an error
+        }
+      }
+      
+      // Normal portfolio loading if no stored template data is found
+      if (portfolioId) {
+        portfolioApi.getById(portfolioId)
+          .then(data => {
+            console.log('Portfolio data loaded:', data);
+            setPortfolio(data);
+            // Select the first section if available
+            if (data.sections && data.sections.length > 0) {
+              setSelectedSection(data.sections[0].id);
+            }
+          })
+          .catch(error => {
+            console.error('Error loading portfolio:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to load portfolio. Starting with a blank portfolio.',
+              variant: 'destructive'
+            });
+            // Reset to default portfolio state
+            setPortfolio({
+              title: 'My Portfolio',
+              description: 'My professional portfolio',
+              sections: [],
+              theme: {
+                mode: 'light',
+                primaryColor: '#3490dc',
+                secondaryColor: '#ffed4a',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '16px'
+              },
+              isPublished: false
+            });
+          })
+          .finally(() => {
+            setIsLoading(false);
           });
-        })
-        .finally(() => {
-          setIsLoading(false);
+      } else {
+        // No valid portfolio ID found, start with a blank portfolio
+        console.log('No valid portfolio ID found, starting with blank portfolio');
+        setIsLoading(false);
+        toast({
+          title: 'New Portfolio',
+          description: 'Starting with a blank portfolio. Add sections from the sidebar.',
+          variant: 'default'
         });
+      }
     }
   }, [portfolioId, location, toast]);
 
@@ -298,100 +414,106 @@ export default function Editor() {
     }
   };
 
-  // Export portfolio as HTML/ZIP
-  const exportPortfolio = async () => {
+  // Export portfolio as HTML with CSP headers to fix Content Security Policy issues
+  const exportPortfolioAsHtml = async () => {
     try {
+      console.log('Starting HTML export process...');
       setIsSaving(true);
       let idToExport = portfolioId;
       
       if (!idToExport) {
         // Save first if this is a new portfolio
+        console.log('No portfolio ID found, saving portfolio first...');
         const savedPortfolio = await savePortfolio();
         idToExport = savedPortfolio.id;
+        console.log('Portfolio saved with ID:', idToExport);
       }
       
-      // Create a form and submit it to trigger the download
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `/api/portfolios/${idToExport}/export`;
-      form.target = '_blank'; // Open in new tab to avoid navigation issues
-      
-      // Add a timestamp to prevent caching issues
-      const timestampInput = document.createElement('input');
-      timestampInput.type = 'hidden';
-      timestampInput.name = 'timestamp';
-      timestampInput.value = Date.now().toString();
-      form.appendChild(timestampInput);
-      
-      // Add CSRF token if needed
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_csrf';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
+      // Make sure we have a valid ID before proceeding
+      if (!idToExport) {
+        throw new Error('Failed to get a valid portfolio ID for export');
       }
       
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      console.log('Calling downloadPortfolioHtml with ID:', idToExport);
+      // Use the utility function to download the HTML with proper CSP headers
+      await downloadPortfolioHtml(idToExport, portfolio.title || 'portfolio');
       
       toast({
-        title: 'Export Started',
-        description: 'Your portfolio export has started. The download will begin shortly.',
+        title: 'HTML Export Complete',
+        description: 'Your portfolio has been exported as HTML. Check your downloads folder.',
         variant: 'default',
       });
     } catch (error) {
-      console.error('Error exporting portfolio:', error);
+      console.error('Error exporting portfolio as HTML:', error);
       toast({
-        title: 'Export Failed',
-        description: 'There was an error exporting your portfolio. Please try again.',
+        title: 'HTML Export Failed',
+        description: 'There was an error exporting your portfolio as HTML. Please try again.',
         variant: 'destructive',
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+  
+  // Export portfolio as PDF
+  const exportPortfolioAsPdf = async () => {
+    try {
+      console.log('Starting PDF export process...');
+      setIsSaving(true);
+      let idToExport = portfolioId;
+      
+      if (!idToExport) {
+        // Save first if this is a new portfolio
+        console.log('No portfolio ID found, saving portfolio first...');
+        const savedPortfolio = await savePortfolio();
+        idToExport = savedPortfolio.id;
+        console.log('Portfolio saved with ID:', idToExport);
+      }
+      
+      // Make sure we have a valid ID before proceeding
+      if (!idToExport) {
+        throw new Error('Failed to get a valid portfolio ID for export');
+      }
+      
+      console.log('Calling downloadPortfolioPdf with ID:', idToExport);
+      // Use the utility function to download the PDF
+      await downloadPortfolioPdf(idToExport, portfolio.title || 'portfolio');
+      
+      toast({
+        title: 'PDF Export Started',
+        description: 'Your portfolio is being prepared as PDF. Please select "Save as PDF" in the print dialog.',
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error('Error exporting portfolio as PDF:', error);
+      toast({
+        title: 'PDF Export Failed',
+        description: 'There was an error exporting your portfolio as PDF. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Main export function that shows export options
+  const exportPortfolio = async (): Promise<void> => {
+    // Open the export modal
+    setExportModalOpen(true);
+    setExportType('html'); // Default to HTML export
+  };
+  
+  // Handle export based on selected type
+  const handleExport = async (): Promise<void> => {
+    console.log(`Handling export with type: ${exportType}`);
+    if (exportType === 'html') {
+      return exportPortfolioAsHtml();
+    } else {
+      return exportPortfolioAsPdf();
     }
   };
 
-  // Deploy portfolio to subdomain
-  const deployPortfolio = async (subdomain: string) => {
-    try {
-      setIsSaving(true);
-      let portfolioIdToUse = portfolioId;
-      
-      if (!portfolioIdToUse) {
-        const savedPortfolio = await savePortfolio();
-        portfolioIdToUse = savedPortfolio.id;
-      }
-      
-      // Use the API service instead of direct fetch
-      const data = await portfolioApi.deploy(portfolioIdToUse, subdomain);
-      
-      toast({
-        title: 'Success',
-        description: `Portfolio deployed to ${data.url || 'your custom subdomain'}`,
-        variant: 'default',
-      });
-      
-      // Update the portfolio with the new subdomain if it changed
-      if (portfolio.subdomain !== subdomain) {
-        updatePortfolioDetails({ subdomain });
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error deploying portfolio:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to deploy portfolio. Please check if the subdomain is available.',
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  // Deployment functionality removed
 
   // Show loading spinner while data is being fetched
   if (isLoading) {
@@ -405,11 +527,25 @@ export default function Editor() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="editor-layout flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+        {/* Export Modal */}
+        <ExportModal 
+          portfolio={portfolio}
+          open={exportModalOpen}
+          onOpenChange={(open) => {
+            setExportModalOpen(open);
+            // If modal is closed, reset export type to default
+            if (!open) {
+              setExportType('html');
+            }
+          }}
+          onExport={handleExport}
+          onExportTypeChange={setExportType}
+        />
         {/* Header with actions */}
-        <div className="fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 z-10">
+        <div className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-10 shadow-sm">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate">
-              {portfolio.title || 'Untitled Portfolio'}
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-white truncate">
+              {portfolio?.title || 'Untitled Portfolio'}
             </h1>
             {isSaving && (
               <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
@@ -419,7 +555,17 @@ export default function Editor() {
             )}
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={exportPortfolio}
+              className="px-4 py-2 bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-white rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Export
+            </button>
+            
             <button
               onClick={savePortfolio}
               disabled={isSaving}
@@ -431,30 +577,21 @@ export default function Editor() {
                   Saving...
                 </>
               ) : (
-                'Save Changes'
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Save
+                </>
               )}
-            </button>
-            
-            <button
-              onClick={exportPortfolio}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              Export
-            </button>
-            
-            <button
-              onClick={() => deployPortfolio(portfolio.subdomain || `portfolio-${Date.now()}`)}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              Publish
             </button>
           </div>
         </div>
         
         {/* Main content area with sidebar and canvas */}
-        <div className="flex w-full h-full pt-14">
+        <div className="flex w-full h-full pt-16">
           {/* Left Sidebar */}
-          <div className="w-64 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800">
+          <div className="w-72 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800 shadow-sm">
             <EditorSidebar 
               addSection={addSection} 
               portfolio={portfolio}
@@ -464,14 +601,13 @@ export default function Editor() {
               removeSection={removeSection}
               savePortfolio={savePortfolio}
               exportPortfolio={exportPortfolio}
-              deployPortfolio={deployPortfolio}
               deletePortfolio={deletePortfolio}
               isSaving={isSaving}
             />
           </div>
           
           {/* Main Canvas */}
-          <div className="flex-1 h-full overflow-y-auto">
+          <div className="flex-1 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
             <EditorCanvas 
               portfolio={portfolio}
               selectedSection={selectedSection}
@@ -482,7 +618,7 @@ export default function Editor() {
           </div>
           
           {/* Right Settings Panel */}
-          <div className="w-80 border-l border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800">
+          <div className="w-80 border-l border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800 shadow-sm">
             <EditorSettings 
               portfolio={portfolio}
               selectedSection={selectedSection}
@@ -497,4 +633,5 @@ export default function Editor() {
       </div>
     </DndProvider>
   );
+
 }

@@ -1,28 +1,43 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Container,
   Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  CardActions,
-  Button,
   Box,
-  Chip,
   Skeleton,
   Alert,
-  CircularProgress,
   TextField,
   MenuItem,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  Paper,
+  Tabs,
+  Tab,
+  IconButton,
+  Tooltip,
+  Button,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  Avatar,
+  Divider
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import SortIcon from '@mui/icons-material/Sort';
+import SearchIcon from '@mui/icons-material/Search';
+import TemplateCard from '../components/TemplateCard';
 import { templateApi, portfolioApi } from '../services/api';
 import { Template } from '../types';
+
+// Extended Template interface with additional properties
+// Using Omit to remove properties we want to redefine
+interface EnhancedTemplate extends Omit<Template, 'popularity'> {
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  popularity: number; // Making it required to match Template interface
+}
 
 // Categories for filtering
 const CATEGORIES = [
@@ -39,26 +54,81 @@ const CATEGORIES = [
   { value: 'entrepreneur', label: 'Entrepreneur', color: '#FF5722' }
 ];
 
+// Sort options
+const SORT_OPTIONS = [
+  { value: 'popular', label: 'Most Popular' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
+  { value: 'nameAsc', label: 'Name (A-Z)' },
+  { value: 'nameDesc', label: 'Name (Z-A)' }
+];
+
+// Difficulty levels
+const DIFFICULTY_LEVELS = [
+  { value: 'all', label: 'All Levels' },
+  { value: 'beginner', label: 'Beginner', color: '#4CAF50' },
+  { value: 'intermediate', label: 'Intermediate', color: '#FF9800' },
+  { value: 'advanced', label: 'Advanced', color: '#F44336' }
+];
+
 export default function Templates() {
-  // We don't need navigate anymore since we're using window.location.href
+  // State for filters and sorting
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [sortOption, setSortOption] = useState('popular');
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  
+  // State for templates and loading
+  const [templates, setTemplates] = useState<EnhancedTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingTemplateId, setLoadingTemplateId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for template preview
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<EnhancedTemplate | null>(null);
+  
+  // Create a mapping of category values to their colors for the TemplateCard
+  const categoryColors = CATEGORIES.reduce((acc, category) => {
+    if (category.value !== 'all' && category.color) {
+      acc[category.value] = category.color;
+    }
+    return acc;
+  }, {} as Record<string, string>);
 
   // Filter out custom templates for display
-  const systemTemplates = templates.filter((template: Template) => !template.isCustom);
+  const systemTemplates = templates.filter((template) => !template.isCustom);
 
-  // Filter templates based on search and category
-  const filteredTemplates = systemTemplates.filter((template: Template) => {
+  // Filter templates based on search, category, and difficulty
+  const filteredTemplates = systemTemplates.filter((template) => {
     const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      (template.tags && template.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
+    const matchesDifficulty = selectedDifficulty === 'all' || template.difficulty === selectedDifficulty;
     
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
+  
+  // Sort templates based on selected sort option
+  const sortedTemplates = [...filteredTemplates].sort((a, b) => {
+    switch (sortOption) {
+      case 'popular':
+        return b.popularity - a.popularity;
+      case 'newest':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case 'oldest':
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case 'nameAsc':
+        return a.name.localeCompare(b.name);
+      case 'nameDesc':
+        return b.name.localeCompare(a.name);
+      default:
+        return 0;
+    }
   });
 
   // Fetch templates when component mounts
@@ -74,7 +144,29 @@ export default function Templates() {
     try {
       const data = await templateApi.getAll();
       console.log('Templates received from API:', data);
-      setTemplates(data.filter((template: any) => template.isPublic));
+      
+      // Add mock data for new fields if they don't exist
+      const enhancedData = data
+        .filter((template: any) => template.isPublic)
+        .map((template: any) => {
+          // Assign random difficulty if not present
+          if (!template.difficulty) {
+            const difficulties = ['beginner', 'intermediate', 'advanced'];
+            template.difficulty = difficulties[Math.floor(Math.random() * difficulties.length)] as 'beginner' | 'intermediate' | 'advanced';
+          }
+          
+          // Assign random popularity if not present
+          if (!template.popularity) {
+            template.popularity = Math.floor(Math.random() * 500) + 50;
+          } else {
+            // Ensure popularity is a number, not undefined
+            template.popularity = Number(template.popularity);
+          }
+          
+          return template as EnhancedTemplate;
+        });
+      
+      setTemplates(enhancedData);
     } catch (err) {
       console.error('Failed to fetch templates:', err);
       setError('Failed to load templates. Please try again later.');
@@ -86,7 +178,7 @@ export default function Templates() {
   // Handle template selection
   const selectTemplate = async (templateId: string) => {
     try {
-      setIsLoading(true);
+      setLoadingTemplateId(templateId);
       setError(null);
       
       const template = templates.find(t => t.id === templateId);
@@ -113,269 +205,467 @@ export default function Templates() {
         theme: template.theme
       };
       
-      const newPortfolio = await portfolioApi.create(portfolioData);
+      try {
+        // Create a new portfolio with the template data
+        const newPortfolio = await portfolioApi.create(portfolioData);
+        console.log('Created new portfolio:', newPortfolio);
+        
+        // Check for ID in the response - it could be in different formats
+        // The API might return _id instead of id, or it might be nested
+        const portfolioId = newPortfolio._id || newPortfolio.id || 
+                          (newPortfolio._doc && (newPortfolio._doc._id || newPortfolio._doc.id));
+        
+        if (!portfolioId) {
+          console.error('Portfolio created but no ID found in response:', newPortfolio);
+          // Try to extract ID from the object if it exists
+          const possibleId = Object.keys(newPortfolio).find(key => 
+            key === '_id' || key === 'id' || 
+            (typeof newPortfolio[key] === 'string' && newPortfolio[key].length > 20)
+          );
+          
+          if (possibleId) {
+            console.log('Found possible ID field:', possibleId, newPortfolio[possibleId]);
+            const extractedId = newPortfolio[possibleId];
+            
+            // Store the template data in localStorage
+            localStorage.setItem('selectedTemplateData', JSON.stringify({
+              id: extractedId,
+              sections: template.sections,
+              theme: template.theme,
+              name: template.name,
+              description: template.description
+            }));
+            
+            // Navigate to the editor with the extracted ID
+            console.log('Navigating to editor with extracted ID:', extractedId);
+            window.location.href = `/editor/${extractedId}`;
+            return;
+          }
+          
+          throw new Error('Failed to extract portfolio ID from response');
+        }
+        
+        // Store the template data in localStorage to ensure it's available in the editor
+        localStorage.setItem('selectedTemplateData', JSON.stringify({
+          id: portfolioId,
+          sections: template.sections,
+          theme: template.theme,
+          name: template.name,
+          description: template.description
+        }));
+        
+        // Navigate to the editor with the portfolio ID
+        console.log('Navigating to editor with ID:', portfolioId);
+        window.location.href = `/editor/${portfolioId}`;
+      } catch (error) {
+        console.error('Error creating portfolio:', error);
+        setError('Failed to create portfolio. Please try again.');
+        setLoadingTemplateId(null);
+      }
       
-      // Navigate to the editor with the portfolio ID
-      window.location.href = `/editor?portfolio=${newPortfolio.id}`;
     } catch (err: any) {
-      console.error('Failed to create portfolio from template:', err);
-      setError(err.message || 'Failed to create portfolio from template. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to select template:', err);
+      setError(err.message || 'Failed to select template. Please try again.');
+      setLoadingTemplateId(null);
     }
   };
 
-  // Handle template deletion
-  const deleteTemplate = async (templateId: string) => {
-    const template = templates.find((t: Template) => t.id === templateId);
-    if (!template) {
-      setError('Template not found');
-      return;
-    }
-
-    // Only allow deletion of user-created templates
-    if (!template.isCustom) {
-      setError('System templates cannot be deleted. Please manage your templates from your dashboard.');
-      return;
-    }
-
-    const confirmDelete = window.confirm(`Are you sure you want to delete the "${template.name}" template? This action cannot be undone.`);
-    if (!confirmDelete) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await templateApi.delete(templateId);
-      
-      // Remove the deleted template from the local state
-      setTemplates(templates.filter((t: Template) => t.id !== templateId));
-      
-      setError('Template deleted successfully!');
-    } catch (err: any) {
-      console.error('Failed to delete template:', err);
-      setError(err.message || 'Failed to delete template. Please try again.');
-    } finally {
-      setIsLoading(false);
+  // Preview template function
+  const handlePreviewTemplate = (templateId: string) => {
+    console.log(`Previewing template: ${templateId}`);
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setPreviewTemplate(template);
+      setPreviewOpen(true);
     }
   };
-
+  
+  // Close preview dialog
+  const handleClosePreview = () => {
+    setPreviewOpen(false);
+  };
+  
+  // Handle tab change
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+    
+    // Update sorting based on tab
+    if (newValue === 1) { // Popular tab
+      setSortOption('popular');
+    } else if (newValue === 2) { // New tab
+      setSortOption('newest');
+    }
+  };
+  
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
-        Choose a Template
-      </Typography>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+          Choose a Template
+        </Typography>
+        
+        <Tabs 
+          value={activeTab} 
+          onChange={handleTabChange}
+          sx={{ 
+            '& .MuiTab-root': { 
+              fontWeight: 'bold',
+              minWidth: 100 
+            }
+          }}
+        >
+          <Tab label="All" />
+          <Tab label="Popular" />
+          <Tab label="New" />
+        </Tabs>
+      </Box>
       
-      {/* Filters */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid sx={{ gridColumn: { xs: 12, md: 8 } }}>
-          <TextField
-            fullWidth
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            variant="outlined"
-            label="Search"
-          />
-        </Grid>
-        <Grid sx={{ gridColumn: { xs: 12, md: 4 } }}>
-          <FormControl fullWidth variant="outlined">
-            <InputLabel id="category-select-label">Category</InputLabel>
-            <Select
-              labelId="category-select-label"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value as string)}
-              label="Category"
-            >
-              {CATEGORIES.map(category => (
-                <MenuItem key={category.value} value={category.value}>
-                  {category.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-      </Grid>
-
-      {/* Templates Grid */}
-      {isLoading ? (
-        <Grid container spacing={4}>
-          {[...Array(10)].map((_, index) => (
-            <Grid key={index} sx={{ gridColumn: { xs: 12, md: 6, lg: 4 } }}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Skeleton variant="rectangular" height={200} />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Skeleton variant="text" height={24} width="80%" />
-                  <Skeleton variant="text" height={24} width="60%" />
-                  <Skeleton variant="text" height={24} width="40%" />
-                  <Skeleton variant="text" height={24} width="30%" />
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      ) : error ? (
-        <Box sx={{ textAlign: 'center', py: 6 }}>
-          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
-          <Button variant="contained" onClick={fetchTemplates}>Try Again</Button>
+      {/* Search and filter */}
+      <Paper elevation={0} sx={{ mb: 4, p: 2, borderRadius: 2, bgcolor: 'background.paper' }}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Box sx={{ position: 'relative', flexGrow: 1 }}>
+            <TextField
+              placeholder="Search templates..."
+              variant="outlined"
+              fullWidth
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  pr: 5
+                }
+              }}
+            />
+            <SearchIcon sx={{ position: 'absolute', right: 14, top: 14, color: 'text.secondary' }} />
+          </Box>
+          
+          <Tooltip title="Sort templates">
+            <IconButton onClick={() => setShowFilters(!showFilters)}>
+              <SortIcon />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="Filter templates">
+            <IconButton onClick={() => setShowFilters(!showFilters)}>
+              <FilterListIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
-      ) : (
-        <Grid container spacing={4}>
-          {filteredTemplates.map((template, index) => (
-            <Grid key={index} sx={{ gridColumn: { xs: 12, md: 6, lg: 4 } }}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                    boxShadow: 6
-                  },
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={template.thumbnail || `/assets/templates/${template.category}.jpg`}
-                  alt={template.name}
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    backgroundColor: '#f5f5f5'
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4))',
-                    pointerEvents: 'none'
-                  }}
-                />
-                <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    {CATEGORIES.find(cat => cat.value === template.category)?.color && (
-                      <Box
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: '50%',
-                          bgcolor: CATEGORIES.find(cat => cat.value === template.category)?.color,
-                          mr: 1
-                        }}
-                      />
-                    )}
-                    <Typography variant="h6" component="h2" gutterBottom>
-                      {template.name}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {template.description}
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {template.tags?.map((tag: string, i: number) => (
-                      <Chip
-                        key={i}
-                        label={tag}
-                        size="small"
-                        sx={{
-                          bgcolor: 'primary.light',
-                          color: 'primary.main'
-                        }}
-                      />
-                    ))}
-                    <Box sx={{ ml: 1, display: 'flex', alignItems: 'center' }}>
-                      {template.isCustom && (
-                        <Typography variant="caption" color="text.secondary">
-                          Custom
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                      Sections
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {template.sections?.map((section, i) => (
-                        <Chip
-                          key={i}
-                          label={section.type.charAt(0).toUpperCase() + section.type.slice(1)}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            bgcolor: 'background.paper',
-                            border: '1px solid',
-                            borderColor: 'divider'
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                      Category
-                    </Typography>
-                    <Chip
-                      label={CATEGORIES.find(cat => cat.value === template.category)?.label || 'Unknown'}
-                      size="small"
-                      sx={{
-                        bgcolor: CATEGORIES.find(cat => cat.value === template.category)?.color,
-                        color: 'white'
-                      }}
-                    />
-                  </Box>
-                </CardContent>
-                <CardActions sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => selectTemplate(template.id)}
-                    startIcon={<motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} />}
-                    disabled={isLoading}
-                    sx={{
-                      '&:disabled': {
-                        opacity: 0.7,
-                        pointerEvents: 'none'
-                      }
-                    }}
-                  >
-                    {isLoading ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      'Use Template'
-                    )}
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        
+        {showFilters && (
+          <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={selectedCategory}
+                  label="Category"
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  {CATEGORIES.map((category) => (
+                    <MenuItem key={category.value} value={category.value}>
+                      {category.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth size="small">
+                <InputLabel>Difficulty</InputLabel>
+                <Select
+                  value={selectedDifficulty}
+                  label="Difficulty"
+                  onChange={(e) => setSelectedDifficulty(e.target.value)}
+                >
+                  {DIFFICULTY_LEVELS.map((level) => (
+                    <MenuItem key={level.value} value={level.value}>
+                      {level.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth size="small">
+                <InputLabel>Sort By</InputLabel>
+                <Select
+                  value={sortOption}
+                  label="Sort By"
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+          </Box>
+        )}
+      </Paper>
+      
+      {/* Error message */}
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 4 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchTemplates}>
+              Try Again
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
       )}
-      {filteredTemplates.length === 0 && (
+      
+      {/* Templates Grid */}
+      <Box sx={{ mb: 4 }}>
+        {isLoading ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
+              <Box key={item} sx={{ height: '450px', mb: 1 }}>
+                <Skeleton variant="rectangular" height={200} sx={{ mb: 1, borderRadius: 2 }} />
+                <Skeleton variant="text" height={30} width="80%" />
+                <Skeleton variant="text" height={20} width="60%" />
+                <Skeleton variant="text" height={20} width="40%" />
+                <Box sx={{ mt: 2 }}>
+                  <Skeleton variant="rectangular" height={36} width="100%" sx={{ borderRadius: 1 }} />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+            {sortedTemplates.map((template) => (
+              <Box key={template.id} sx={{ height: '450px' }}>
+                <Box sx={{ height: '100%' }}>
+                  <TemplateCard 
+                    template={template}
+                    onSelect={() => selectTemplate(template.id)}
+                    onPreview={() => handlePreviewTemplate(template.id)}
+                    isLoading={loadingTemplateId === template.id}
+                    categoryColors={categoryColors}
+                  />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </Box>
+      
+      {/* No results message */}
+      {!isLoading && sortedTemplates.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 6 }}>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>No templates match your search criteria.</Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            No templates match your search criteria.
+          </Typography>
           <Button 
             variant="contained" 
             onClick={() => {
               setSearchQuery('');
               setSelectedCategory('all');
+              setSelectedDifficulty('all');
+              setSortOption('popular');
             }}
           >
             Clear Filters
           </Button>
         </Box>
       )}
+      
+      {/* Template Preview Dialog */}
+      <Dialog 
+        open={previewOpen} 
+        onClose={handleClosePreview}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 2, overflow: 'hidden' }
+        }}
+      >
+        {previewTemplate && (
+          <>
+            <DialogTitle sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              pb: 2
+            }}>
+              <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                {previewTemplate.name}
+              </Typography>
+              <Chip 
+                label={previewTemplate.category.charAt(0).toUpperCase() + previewTemplate.category.slice(1)}
+                color="primary"
+                sx={{ 
+                  bgcolor: categoryColors[previewTemplate.category] || 'primary.main',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+              />
+            </DialogTitle>
+            
+            <DialogContent sx={{ p: 0 }}>
+              <Box sx={{ position: 'relative' }}>
+                <Box 
+                  component="img"
+                  src={previewTemplate.thumbnail}
+                  alt={previewTemplate.name}
+                  sx={{ 
+                    width: '100%',
+                    height: 300,
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    borderBottom: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                />
+                
+                {previewTemplate.difficulty && (
+                  <Chip
+                    label={previewTemplate.difficulty.charAt(0).toUpperCase() + previewTemplate.difficulty.slice(1)}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      left: 16,
+                      fontWeight: 'bold',
+                      bgcolor: previewTemplate.difficulty === 'beginner' ? '#4CAF50' : 
+                              previewTemplate.difficulty === 'intermediate' ? '#FF9800' : '#F44336',
+                      color: 'white'
+                    }}
+                  />
+                )}
+                
+                {previewTemplate.popularity && (
+                  <Chip
+                    avatar={<Avatar sx={{ bgcolor: 'rgba(0,0,0,0.5)' }}>👁️</Avatar>}
+                    label={`${previewTemplate.popularity}+ users`}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      fontWeight: 'bold',
+                      bgcolor: 'rgba(0,0,0,0.7)',
+                      color: 'white'
+                    }}
+                  />
+                )}
+              </Box>
+              
+              <Box sx={{ p: 3 }}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  {previewTemplate.description}
+                </Typography>
+                
+                {previewTemplate.tags && previewTemplate.tags.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                      Tags
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {previewTemplate.tags.map((tag, index) => (
+                        <Chip 
+                          key={index} 
+                          label={tag} 
+                          size="small" 
+                          variant="outlined"
+                          sx={{ borderColor: 'primary.light', color: 'primary.main' }} 
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+                
+                <Divider sx={{ my: 2 }} />
+                
+                {previewTemplate.sections && previewTemplate.sections.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                      Included Sections
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {previewTemplate.sections.map((section, index) => (
+                        <Chip 
+                          key={index} 
+                          label={section.type.charAt(0).toUpperCase() + section.type.slice(1)} 
+                          size="small" 
+                          sx={{ 
+                            bgcolor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }} 
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+                
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+                    Theme Preview
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Box sx={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      bgcolor: previewTemplate.theme.primaryColor,
+                      border: '2px solid',
+                      borderColor: 'divider'
+                    }} />
+                    <Box sx={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      bgcolor: previewTemplate.theme.secondaryColor,
+                      border: '2px solid',
+                      borderColor: 'divider'
+                    }} />
+                    <Box sx={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      bgcolor: previewTemplate.theme.mode === 'dark' ? '#121212' : '#ffffff',
+                      border: '2px solid',
+                      borderColor: 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                        {previewTemplate.theme.mode.toUpperCase()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </DialogContent>
+            
+            <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Button onClick={handleClosePreview} variant="outlined">
+                Close
+              </Button>
+              <Button 
+                onClick={() => {
+                  handleClosePreview();
+                  selectTemplate(previewTemplate.id);
+                }} 
+                variant="contained"
+                color="primary"
+                sx={{ ml: 1 }}
+              >
+                Use This Template
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Container>
   );
 }

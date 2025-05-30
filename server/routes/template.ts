@@ -1,5 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
+import { categoryTemplates } from '../scripts/add-template-categories';
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const router = express.Router();
 const templateSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
-  category: z.enum(['developer', 'designer', 'student', 'freelancer', 'photographer']),
+  category: z.enum(['developer', 'designer', 'student', 'freelancer', 'photographer', 'writer', 'artist', 'business', 'educator', 'healthcare']),
   thumbnail: z.string().url(),
   sections: z.array(
     z.object({
@@ -39,7 +40,7 @@ type Template = {
   id: string;
   name: string;
   description: string;
-  category: 'developer' | 'designer' | 'student' | 'freelancer' | 'photographer';
+  category: 'developer' | 'designer' | 'student' | 'freelancer' | 'photographer' | 'writer' | 'artist' | 'business' | 'educator' | 'healthcare';
   thumbnail: string;
   sections: Array<{
     id: string;
@@ -63,8 +64,11 @@ type Template = {
   updatedAt?: string;
 };
 
-// Mock template database (replace with actual DB implementation)
+// Combine existing templates with our new category templates
 const templates: Template[] = [
+  // Include our category templates
+  ...categoryTemplates,
+  // Keep the existing templates as well
   // Template 1: Developer Portfolio
   {
     id: '1',
@@ -717,30 +721,62 @@ export const getTemplates = () => templates;
 
 // Get all templates
 router.get('/', (req, res) => {
-  // Filter by category if provided
-  const { category } = req.query;
-  
-  if (category) {
-    const filteredTemplates = templates.filter(t => t.category === category && t.isPublic);
-    return res.json(filteredTemplates);
+  try {
+    console.log('GET /templates request received');
+    
+    // Filter by category if provided
+    const { category } = req.query;
+    
+    if (category) {
+      console.log('Filtering templates by category:', category);
+      const filteredTemplates = templates.filter(t => t.category === String(category) && t.isPublic);
+      console.log(`Found ${filteredTemplates.length} templates for category ${category}`);
+      return res.json(filteredTemplates);
+    }
+    
+    // Return all public templates
+    const publicTemplates = templates.filter(t => t.isPublic);
+    console.log(`Returning ${publicTemplates.length} public templates`);
+    return res.json(publicTemplates);
+  } catch (error) {
+    console.error('Error in GET /templates:', error);
+    return res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
   }
-  
-  // Return all public templates
-  const publicTemplates = templates.filter(t => t.isPublic);
-  res.json(publicTemplates);
+});
+
+// Get all available template categories
+router.get('/categories', (req, res) => {
+  try {
+    console.log('GET /templates/categories request received');
+    
+    // Extract unique categories from templates
+    const categories = Array.from(new Set(templates.filter(t => t.isPublic).map(t => t.category)));
+    console.log(`Found ${categories.length} unique template categories`);
+    
+    return res.json(categories);
+  } catch (error) { 
+    console.error('Error in GET /templates/categories:', error);
+    return res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
+  }
 });
 
 // Get a specific template
 router.get('/:id', (req, res) => {
-  const template = templates.find(t => t.id === req.params.id && t.isPublic);
-  if (!template) {
-    return res.status(404).json({ message: 'Template not found' });
+  try {
+    console.log('GET /templates/:id request received for ID:', req.params.id);
+    
+    const template = templates.find(t => t.id === req.params.id && t.isPublic);
+    if (!template) {
+      console.log('Template not found with ID:', req.params.id);
+      return res.status(404).json({ message: 'Template not found' });
+    }
+    
+    console.log('Template found with ID:', req.params.id);
+    return res.json(template);
+  } catch (error) {
+    console.error('Error in GET /templates/:id:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
-  
-  // Add debug logging
-  console.log('Template found with ID:', req.params.id);
-  
-  res.json(template);
 });
 
 // Admin: Create a new template

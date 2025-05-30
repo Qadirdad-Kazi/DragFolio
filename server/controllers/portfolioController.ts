@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { Portfolio, IPortfolio } from '../models/mongoose-schema';
-import { isSubdomainAvailable } from '../utils/subdomain';
+import { Portfolio } from '../models/mongoose-schema';
 
 // Define portfolio validation types
 type PortfolioSection = {
@@ -128,42 +127,4 @@ export const exportPortfolio = async (req: Request, res: Response) => {
   }
 };
 
-// Deploy portfolio to subdomain
-export const deployPortfolio = async (req: Request, res: Response) => {
-  try {
-    const portfolio = await Portfolio.findById(req.params.id);
-    if (!portfolio) {
-      return res.status(404).json({ message: 'Portfolio not found' });
-    }
-
-    // Check if user owns the portfolio
-    const userId = req.body.userId;
-    if (!userId || portfolio.userId !== userId) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    // Validate subdomain
-    const { subdomain } = req.body;
-    if (!subdomain) {
-      return res.status(400).json({ message: 'Subdomain is required' });
-    }
-
-    const isAvailable = await isSubdomainAvailable(subdomain);
-    if (!isAvailable) {
-      return res.status(400).json({ message: 'Subdomain is already taken' });
-    }
-
-    portfolio.subdomain = subdomain;
-    portfolio.isPublished = true;
-    portfolio.updatedAt = new Date();
-    await portfolio.save();
-
-    res.json({
-      message: 'Portfolio deployed successfully',
-      url: `https://${subdomain}.portfoliohub.app`
-    });
-  } catch (error) {
-    console.error('Deploy portfolio error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+// Deployment functionality removed

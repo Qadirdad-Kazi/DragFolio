@@ -41,7 +41,6 @@ export interface IPortfolio extends Document {
     fontSize: string;
   };
   isPublished: boolean;
-  subdomain?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -112,8 +111,7 @@ const PortfolioSchema = new Schema<IPortfolio>({
     fontFamily: { type: String, required: true },
     fontSize: { type: String, required: true }
   },
-  isPublished: { type: Boolean, default: false },
-  subdomain: { type: String, unique: true, sparse: true }
+  isPublished: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // Template Schema

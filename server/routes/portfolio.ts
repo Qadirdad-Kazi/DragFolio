@@ -28,7 +28,6 @@ const portfolioSchema = z.object({
     fontSize: z.string().default('16px')
   }).optional(), // Make theme optional during creation
   isPublished: z.boolean().default(false),
-  subdomain: z.string().optional(),
   userId: z.string()
 }).passthrough(); // Allow extra fields like 'template'
 
@@ -126,10 +125,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Deploy portfolio to subdomain
-router.post('/:id/deploy', (req, res) => {
-  // This would deploy the portfolio to a subdomain
-  res.status(501).json({ message: 'Deploy functionality not implemented yet' });
-});
+// Deployment functionality removed
 
 export default router;

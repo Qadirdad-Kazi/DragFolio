@@ -67,6 +67,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
         return apiRequest(endpoint, options, retryCount + 1);
       }
       
+      // If we've exhausted retries and it's still failing, throw a more detailed error
       throw new Error(errorData.message || `API request failed with status ${response.status}`);
     }
     
@@ -76,7 +77,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
     console.error(`API request error for ${url}:`, error);
     
     // Retry on network errors if we haven't exceeded max retries
-    if (retryCount < MAX_RETRIES && error instanceof TypeError) {
+    if (retryCount < MAX_RETRIES && ((error instanceof TypeError) || (typeof error === 'object' && error !== null && 'name' in error && error.name === 'TypeError'))) {
       console.log(`Network error, retrying request (${retryCount + 1}/${MAX_RETRIES})...`);
       
       // Exponential backoff
@@ -87,6 +88,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
       return apiRequest(endpoint, options, retryCount + 1);
     }
     
+    // If it's a server error and we've exhausted retries, throw a more descriptive error
     throw error;
   }
 };
@@ -94,17 +96,23 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
 // Portfolio API
 export const portfolioApi = {
   // Get all portfolios for the current user
-  getAll: () => {
-    const token = getToken();
-    if (!token) {
-      throw new Error('No token found');
+  getAll: async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error('No token found');
+      }
+      // Extract userId from token (the token uses 'id' instead of 'userId')
+      const userId = JSON.parse(atob(token.split('.')[1])).id;
+      if (!userId) {
+        throw new Error('Invalid token: No user id found');
+      }
+      return await apiRequest(`/portfolios?userId=${userId}`);
+    } catch (error: unknown) {
+      console.error('Error fetching portfolios:', error instanceof Error ? error.message : String(error));
+      // Return an empty array instead of throwing to prevent app crashes
+      return [];
     }
-    // Extract userId from token (the token uses 'id' instead of 'userId')
-    const userId = JSON.parse(atob(token.split('.')[1])).id;
-    if (!userId) {
-      throw new Error('Invalid token: No user id found');
-    }
-    return apiRequest(`/portfolios?userId=${userId}`);
   },
   
   // Get a specific portfolio
@@ -128,36 +136,39 @@ export const portfolioApi = {
   // Delete a portfolio
   delete: async (id: string) => {
     try {
-      // Validate the ID format - MongoDB ObjectIds are 24-character hex strings
-      if (!id || typeof id !== 'string') {
-        throw new Error('Invalid portfolio ID: ID must be a string');
+      // Basic validation
+      if (!id) {
+        throw new Error('Invalid portfolio ID: ID is required');
       }
       
-      // Extract the ID from MongoDB format if needed
-      let portfolioId = id;
+      // Convert to string if it's not already
+      const portfolioId = String(id).trim();
       
-      // If it's a MongoDB ObjectId string like "_id": "68363187bb0958f29f0ccd8f"
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
-        portfolioId = id; // Already in the correct format
-      } 
-      // If it's a MongoDB ObjectId in string format like ObjectId("68363187bb0958f29f0ccd8f")
-      else if (id.match(/^ObjectId\(['"]([0-9a-fA-F]{24})['"](,\s*\{.*\})?\)$/)) {
-        portfolioId = id.replace(/^ObjectId\(['"]([0-9a-fA-F]{24})['"](,\s*\{.*\})?\)$/, '$1');
-      }
-      // If it doesn't match either format, it's likely invalid
-      else {
-        throw new Error(`Invalid portfolio ID format: ${id}`);
+      if (!portfolioId) {
+        throw new Error('Invalid portfolio ID: Empty ID after trimming');
       }
       
-      console.log('Deleting portfolio with validated ID:', portfolioId);
+      console.log('Attempting to delete portfolio with ID:', portfolioId);
       
+      // Make the delete request
       const result = await apiRequest(`/portfolios/${portfolioId}`, {
         method: 'DELETE',
       });
+      
       console.log('Portfolio deleted successfully:', portfolioId);
       return result;
     } catch (error) {
       console.error(`Error deleting portfolio ${id}:`, error);
+      
+      // Enhance error message for better debugging
+      if (error instanceof Error) {
+        if (error.message.includes('404')) {
+          throw new Error(`Portfolio not found with ID: ${id}`);
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          throw new Error('Not authorized to delete this portfolio');
+        }
+      }
+      
       throw error;
     }
   },
@@ -179,11 +190,7 @@ export const portfolioApi = {
     method: 'GET',
   }),
   
-  // Deploy to subdomain
-  deploy: (id: string, subdomain: string) => apiRequest(`/portfolios/${id}/deploy`, {
-    method: 'POST',
-    body: JSON.stringify({ subdomain }),
-  }),
+  // Deployment functionality removed
 };
 
 // Template cache to avoid unnecessary API calls
@@ -211,14 +218,18 @@ export const templateApi = {
       // Update cache
       templateCache = { templates, timestamp: now };
       return templates;
-    } catch (error) {
+    } catch (error: unknown) {
       // If we have a cache but it's expired, still use it on error
       if (templateCache.templates) {
         console.warn('Failed to fetch fresh templates, using expired cache');
         return templateCache.templates;
       }
-      // No cache available, rethrow the error
-      throw error;
+
+      // Log the error with more details
+      console.error('Error fetching templates:', error instanceof Error ? error.message : String(error));
+      
+      // Return an empty array instead of throwing to prevent app crashes
+      return [];
     }
   },
   

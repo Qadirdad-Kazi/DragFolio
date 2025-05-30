@@ -42,7 +42,7 @@ export default defineConfig({
       '/api': {
         // Auto-detect port by trying common backend ports
         configure: (proxy, options) => {
-          const tryPorts = [3002, 3001, 3000, 8080, 4000, 5000];
+          const tryPorts = [3001, 3002, 3000, 8080, 4000, 5000];
           let foundPort = null;
           
           // Function to check if a port is available
@@ -74,8 +74,8 @@ export default defineConfig({
             }
             
             if (!foundPort) {
-              console.warn('[Vite] Could not auto-detect backend server port. Using default port 3002.');
-              options.target = 'http://localhost:3002';
+              console.warn('[Vite] Could not auto-detect backend server port. Using default port 3001.');
+              options.target = 'http://localhost:3001';
             }
           })();
         },

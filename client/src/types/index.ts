@@ -59,6 +59,7 @@ export interface Portfolio {
 
 // Define template data
 export interface Template {
+  popularity: number;
   id: string;
   name: string;
   category: string;

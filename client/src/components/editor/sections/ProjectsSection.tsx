@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PortfolioSection } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -240,7 +240,7 @@ export default function ProjectsSection({
                       <h4 className="text-lg font-medium mb-2">{project.title}</h4>
                       <p className="text-gray-600 mb-4">{project.description}</p>
                       
-                      {project.technologies.length > 0 && (
+                      {project.technologies && project.technologies.length > 0 && (
                         <div className="mb-4">
                           <div className="flex flex-wrap gap-2">
                             {project.technologies.map((tech, index) => (

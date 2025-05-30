@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PortfolioSection } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -261,7 +261,7 @@ export default function BlogSection({
                       
                       <p className="text-gray-600 mb-4">{post.summary}</p>
                       
-                      {post.tags.length > 0 && (
+                      {post.tags && post.tags.length > 0 && (
                         <div className="mb-4">
                           <div className="flex flex-wrap gap-2">
                             {post.tags.map((tag, index) => (

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from 'wouter';
-import { SectionType } from '../types';
-import type { Portfolio } from '../types';
+import { SectionType, Portfolio, Template } from '../types';
 import {
   Container,
   Box,
@@ -33,17 +32,6 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { portfolioApi, templateApi } from '../services/api';
-import { Portfolio as PortfolioType, Template } from '../types';
-
-interface Portfolio extends PortfolioType {
-  id: string;
-  title: string;
-  description: string;
-  isPublished: boolean;
-  template: string;
-  updatedAt: string;
-  visits: number;
-}
 
 function Dashboard() {
   const { isAuthenticated, user } = useAuth();
@@ -285,14 +273,18 @@ function Dashboard() {
   };
 
   const handleEditPortfolio = (portfolio: Portfolio) => {
-    if (!portfolio.id) {
-      console.error('No portfolio ID provided for editing');
+    // Check for either id or _id (MongoDB style)
+    // Use String() to ensure we have a string value, not undefined
+    const portfolioId = String(portfolio.id || portfolio._id || '');
+    
+    if (!portfolioId) {
+      console.error('No portfolio ID provided for editing:', portfolio);
       alert('Cannot edit portfolio: Missing ID');
       return;
     }
     
-    console.log('Editing portfolio with ID:', portfolio.id, 'Title:', portfolio.title);
-    navigate(`/editor?id=${portfolio.id}`);
+    console.log('Editing portfolio with ID:', portfolioId, 'Title:', portfolio.title);
+    navigate(`/editor?id=${portfolioId}`);
   };
 
   const handleDeletePortfolio = async () => {
@@ -500,7 +492,7 @@ function Dashboard() {
                           <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                             <CardHeader
                               title={portfolio.title}
-                              subheader={formatDate(portfolio.updatedAt)}
+                              subheader={formatDate(portfolio.updatedAt ?? '')}
                               action={
                                 <Chip
                                   label={portfolio.isPublished ? 'Published' : 'Draft'}
