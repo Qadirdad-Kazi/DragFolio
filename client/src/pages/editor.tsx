@@ -653,7 +653,7 @@ export default function Editor() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="editor-layout flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="editor-layout flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {/* Export Modal */}
         <ExportModal 
           portfolio={portfolio}

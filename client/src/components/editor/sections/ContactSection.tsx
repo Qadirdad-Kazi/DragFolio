@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PortfolioSection } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,10 @@ export default function ContactSection({
 }: ContactSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const content = section.content || { email: '', phone: '', location: '', website: '', message: '', socialLinks: [] };
+  // Ensure socialLinks is always an array to prevent errors
+  if (!content.socialLinks) {
+    content.socialLinks = [];
+  }
   const contactInfo: ContactInfo = content;
 
   // Toggle editing mode

@@ -104,13 +104,13 @@ export default function EditorSidebar({
           p: 2,
         }}
       >
-        <Typography variant="h6" sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 3, color: (theme) => theme.palette.mode === 'dark' ? 'common.white' : 'text.primary' }}>
           Portfolio Builder
         </Typography>
 
         {/* Add Section */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, color: (theme) => theme.palette.mode === 'dark' ? 'common.white' : 'text.primary' }}>
             Add Section
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>

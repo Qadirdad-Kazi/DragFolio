@@ -4,7 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: blob: via.placeholder.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://replit.com; connect-src 'self' https:; font-src 'self' https:;">
+    <meta name="description" content="DragFolio - Create and manage your professional portfolio with drag and drop ease" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: blob: https://via.placeholder.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://replit.com; connect-src 'self' https:; font-src 'self' https:;">
+    
+    <!-- Performance optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="/logo.svg" as="image" type="image/svg+xml" />
+    
+    <!-- Critical CSS inline (will be filled by build process) -->
+    <style id="critical-css"></style>
+    
+    <!-- Prevent flash of unstyled content -->
+    <script>
+      // Check for dark mode preference
+      const darkModePreference = localStorage.getItem('theme-mode') === 'dark' || 
+        (localStorage.getItem('theme-mode') === null && 
+         window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      // Apply dark mode class immediately if needed
+      if (darkModePreference) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

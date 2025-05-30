@@ -73,13 +73,10 @@ export default function Navbar() {
     return "U";
   };
 
-  // Check if we're on the editor page
-  const isEditorPage = location.startsWith("/editor");
-
-  // Don't show navbar on editor page
-  if (isEditorPage) {
-    return null;
-  }
+  // We want the navbar to show on all pages, including the editor page
+  // Previously, the navbar was hidden on editor pages with this code:
+  // const isEditorPage = location.startsWith("/editor");
+  // if (isEditorPage) return null;
 
   const menuId = 'primary-search-account-menu';
   const renderMenu = (

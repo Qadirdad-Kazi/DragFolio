@@ -28,16 +28,39 @@ const MAX_RETRIES = 2;
 // Retry delay in milliseconds (increases with each retry)
 const RETRY_DELAY = 1000;
 
-// Helper for API requests with retry logic
+// Simple in-memory cache for GET requests
+const apiCache: Record<string, { data: any; timestamp: number }> = {};
+const CACHE_TTL = 60 * 1000; // 60 seconds cache lifetime
+
+// Helper for API requests with retry logic and caching
 const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCount = 0) => {
   const baseUrl = API_URL;
   const url = `${baseUrl}${endpoint}`;
+  const isGet = !options.method || options.method === 'GET';
+  const cacheKey = `${url}-${JSON.stringify(options.body || '')}`;
+  
+  // Check cache for GET requests
+  if (isGet && apiCache[cacheKey]) {
+    const cachedData = apiCache[cacheKey];
+    const now = Date.now();
+    
+    // Return cached data if it's still fresh
+    if (now - cachedData.timestamp < CACHE_TTL) {
+      console.log(`Using cached data for: ${url}`);
+      return cachedData.data;
+    } else {
+      // Clear expired cache
+      delete apiCache[cacheKey];
+    }
+  }
   
   console.log(`Making API request to: ${url}`);
   
-  // Set default headers
+  // Set default headers with performance optimizations
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
     ...(options.headers as Record<string, string> || {})
   };
   
@@ -46,6 +69,9 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
+  
+  // Add performance tracking header
+  headers['X-Client-Performance-Metrics'] = 'enabled';
   
   try {
     // Make the request
@@ -89,8 +115,28 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
       throw new Error(errorData.message || `API Error: ${response.status}`);
     }
     
-    // Parse and return the response
+    // Parse the response
     const data = await response.json();
+    
+    // Cache the result for GET requests
+    if (isGet) {
+      apiCache[cacheKey] = {
+        data,
+        timestamp: Date.now()
+      };
+      
+      // Limit cache size to prevent memory leaks
+      const cacheKeys = Object.keys(apiCache);
+      if (cacheKeys.length > 100) {
+        // Remove oldest entries if cache gets too large
+        const oldestKey = cacheKeys.reduce((oldest, key) => {
+          return apiCache[key].timestamp < apiCache[oldest].timestamp ? key : oldest;
+        }, cacheKeys[0]);
+        
+        delete apiCache[oldestKey];
+      }
+    }
+    
     return data;
   } catch (error) {
     // Handle network errors

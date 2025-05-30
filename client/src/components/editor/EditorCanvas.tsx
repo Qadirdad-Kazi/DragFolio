@@ -245,7 +245,7 @@ export default function EditorCanvas({
             <Typography variant="h5" fontWeight="medium" sx={{ mb: 2 }}>
               Your Portfolio is Empty
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: '400px' }}>
+            <Typography variant="body1" sx={{ mb: 3, maxWidth: '400px', color: portfolio.theme.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'text.secondary' }}>
               Add sections from the sidebar to start building your professional portfolio.
             </Typography>
             <Button variant="outlined" color="primary" startIcon={<AddIcon />}>

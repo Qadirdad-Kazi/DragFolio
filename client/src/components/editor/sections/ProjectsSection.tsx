@@ -245,7 +245,7 @@ export default function ProjectsSection({
                           <div className="flex flex-wrap gap-2">
                             {project.technologies.map((tech, index) => (
                               <span
-                                key={index}
+                                key={`${project.id}-tech-${index}`}
                                 className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full"
                               >
                                 {tech}
