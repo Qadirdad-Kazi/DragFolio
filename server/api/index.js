@@ -48,7 +48,17 @@ portfolioRouter.get('/:id', (req, res) => {
 
 // Template routes
 templateRouter.get('/', (req, res) => {
-  res.status(200).json({ message: 'Templates endpoint is active' });
+  console.log('Templates endpoint accessed');
+  // Return a more complete response with sample data
+  res.status(200).json({
+    success: true,
+    message: 'Templates endpoint is active',
+    templates: [
+      { id: 1, name: 'Portfolio Template 1', description: 'A modern portfolio layout' },
+      { id: 2, name: 'Resume Template', description: 'Professional resume layout' },
+      { id: 3, name: 'Project Showcase', description: 'Template for showcasing projects' }
+    ]
+  });
 });
 
 // User routes
@@ -61,6 +71,13 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  next();
+});
 
 // Registration control middleware
 app.use(createMiddleware());
