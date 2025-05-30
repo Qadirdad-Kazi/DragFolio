@@ -26,6 +26,30 @@ export default function Editor() {
       return paramId;
     }
     
+    // Parse the current URL to get query parameters
+    let queryId = null;
+    try {
+      // Handle different location types (string or Location object)
+      let queryString = '';
+      if (typeof location === 'string') {
+        queryString = location.includes('?') ? location.split('?')[1] : '';
+      } else if (typeof window !== 'undefined') {
+        // Use window.location if available
+        queryString = window.location.search.substring(1);
+      }
+      
+      // Extract the ID parameter
+      const searchParams = new URLSearchParams(queryString);
+      queryId = searchParams.get('id');
+      
+      if (queryId && queryId !== 'undefined') {
+        console.log('Using portfolio ID from query parameters:', queryId);
+        return queryId;
+      }
+    } catch (e) {
+      console.error('Error parsing URL query parameters:', e);
+    }
+    
     // Check if we have stored template data with an ID
     const storedTemplateData = localStorage.getItem('selectedTemplateData');
     if (storedTemplateData) {
@@ -40,14 +64,19 @@ export default function Editor() {
       }
     }
     
-    // Otherwise, check for ID in query parameters
-    const searchParams = new URLSearchParams(
-      location.includes('?') ? location.split('?')[1] : ''
-    );
-    const queryId = searchParams.get('id');
-    if (queryId && queryId !== 'undefined') {
-      console.log('Using portfolio ID from query parameters:', queryId);
-      return queryId;
+    // Check if we have backup portfolio data with an ID
+    const backupData = localStorage.getItem('editingPortfolioData');
+    if (backupData) {
+      try {
+        const portfolioData = JSON.parse(backupData);
+        if (portfolioData && (portfolioData._id || portfolioData.id)) {
+          const backupId = portfolioData._id || portfolioData.id;
+          console.log('Using portfolio ID from backup data:', backupId);
+          return backupId;
+        }
+      } catch (e) {
+        console.error('Error parsing backup portfolio data:', e);
+      }
     }
     
     console.log('No valid portfolio ID found');
@@ -90,15 +119,27 @@ export default function Editor() {
   // Load portfolio data or initialize from template
   useEffect(() => {
     // Check if we have a template ID in the URL
-    const searchParams = new URLSearchParams(location.includes('?') ? location.split('?')[1] : '');
+    const searchParams = new URLSearchParams(typeof location === 'string' && location.includes('?') ? location.split('?')[1] : '');
     const templateId = searchParams.get('template');
+    const queryId = searchParams.get('id');
+    
+    // Log all parameters for debugging
+    console.log('URL parameters:', { paramId, queryId, portfolioId, templateId });
     
     // Check if we have template data in localStorage
     const storedTemplateData = localStorage.getItem('selectedTemplateData');
     
+    // Check if we have backup portfolio data in localStorage
+    const backupPortfolioData = localStorage.getItem('editingPortfolioData');
+    if (backupPortfolioData) {
+      console.log('Found backup portfolio data in localStorage');
+    }
+    
+    // Set loading state
+    setIsLoading(true);
+    
     if (templateId) {
       // Initialize from template ID in URL
-      setIsLoading(true);
       console.log('Initializing portfolio from template ID in URL:', templateId);
       
       portfolioApi.create({
@@ -137,10 +178,12 @@ export default function Editor() {
         // Clear template data from localStorage after using it
         localStorage.removeItem('selectedTemplateData');
       });
-    } else if (portfolioId) {
+    } else if (queryId || paramId || portfolioId) {
+      // Determine which ID to use, prioritizing query parameter
+      const idToLoad = queryId || paramId || portfolioId;
+      
       // Load existing portfolio
-      setIsLoading(true);
-      console.log('Loading portfolio with ID:', portfolioId);
+      console.log('Loading portfolio with ID:', idToLoad);
       
       // Check if we have stored template data for this portfolio ID
       if (storedTemplateData) {
@@ -148,11 +191,11 @@ export default function Editor() {
           const templateData = JSON.parse(storedTemplateData);
           
           // Verify this is the correct portfolio
-          if (templateData.id === portfolioId) {
+          if (templateData.id === idToLoad) {
             console.log('Found stored template data for portfolio:', templateData);
             
             // Load portfolio from API first to get the latest data
-            portfolioApi.getById(portfolioId)
+            portfolioApi.getById(idToLoad)
               .then(data => {
                 console.log('Portfolio data loaded from API:', data);
                 
@@ -182,8 +225,22 @@ export default function Editor() {
                 console.error('Error loading portfolio:', error);
                 toast({
                   title: 'Error',
-                  description: 'Failed to load portfolio. Please try again.',
+                  description: 'Failed to load portfolio. Starting with a blank portfolio.',
                   variant: 'destructive'
+                });
+                // Reset to default portfolio state
+                setPortfolio({
+                  title: 'My Portfolio',
+                  description: 'My professional portfolio',
+                  sections: [],
+                  theme: {
+                    mode: 'light',
+                    primaryColor: '#2563eb',
+                    secondaryColor: '#64748b',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '16px'
+                  },
+                  isPublished: false
                 });
               })
               .finally(() => {
@@ -198,53 +255,123 @@ export default function Editor() {
       }
       
       // Normal portfolio loading if no stored template data is found
-      if (portfolioId) {
-        portfolioApi.getById(portfolioId)
-          .then(data => {
-            console.log('Portfolio data loaded:', data);
-            setPortfolio(data);
-            // Select the first section if available
-            if (data.sections && data.sections.length > 0) {
-              setSelectedSection(data.sections[0].id);
-            }
-          })
-          .catch(error => {
-            console.error('Error loading portfolio:', error);
-            toast({
-              title: 'Error',
-              description: 'Failed to load portfolio. Starting with a blank portfolio.',
-              variant: 'destructive'
-            });
-            // Reset to default portfolio state
-            setPortfolio({
-              title: 'My Portfolio',
-              description: 'My professional portfolio',
-              sections: [],
-              theme: {
-                mode: 'light',
-                primaryColor: '#3490dc',
-                secondaryColor: '#ffed4a',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '16px'
-              },
-              isPublished: false
-            });
-          })
-          .finally(() => {
-            setIsLoading(false);
+      portfolioApi.getById(idToLoad)
+        .then(data => {
+          console.log('Portfolio data loaded successfully from API:', data);
+          
+          // Check if we received valid portfolio data
+          if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+            throw new Error('Received empty portfolio data from API');
+          }
+          
+          setPortfolio(data);
+          
+          // Select the first section if available
+          if (data.sections && data.sections.length > 0) {
+            setSelectedSection(data.sections[0].id);
+          }
+          
+          // Show success message
+          toast({
+            title: 'Portfolio Loaded',
+            description: `Successfully loaded "${data.title}"`,
+            variant: 'default'
           });
-      } else {
-        // No valid portfolio ID found, start with a blank portfolio
-        console.log('No valid portfolio ID found, starting with blank portfolio');
-        setIsLoading(false);
-        toast({
-          title: 'New Portfolio',
-          description: 'Starting with a blank portfolio. Add sections from the sidebar.',
-          variant: 'default'
+        })
+        .catch(error => {
+          console.error('Error loading portfolio from API:', error);
+          
+          // Try to load from localStorage backup
+          const backupData = localStorage.getItem('editingPortfolioData');
+          if (backupData) {
+            try {
+              const parsedBackupData = JSON.parse(backupData);
+              console.log('Loading portfolio from localStorage backup:', parsedBackupData);
+              
+              if (parsedBackupData && (parsedBackupData.title || parsedBackupData.sections)) {
+                setPortfolio(parsedBackupData);
+                
+                // Select the first section if available
+                if (parsedBackupData.sections && parsedBackupData.sections.length > 0) {
+                  setSelectedSection(parsedBackupData.sections[0].id);
+                }
+                
+                toast({
+                  title: 'Portfolio Loaded from Backup',
+                  description: `Loaded "${parsedBackupData.title}" from local backup`,
+                  variant: 'default'
+                });
+                
+                return; // Exit early since we successfully loaded from backup
+              }
+            } catch (backupError) {
+              console.error('Error parsing backup portfolio data:', backupError);
+            }
+          }
+          
+          // If we reach here, both API and backup failed
+          toast({
+            title: 'Error',
+            description: 'Failed to load portfolio. Starting with a blank portfolio.',
+            variant: 'destructive'
+          });
+          
+          // Reset to default portfolio state
+          setPortfolio({
+            title: 'My Portfolio',
+            description: 'My professional portfolio',
+            sections: [],
+            theme: {
+              mode: 'light',
+              primaryColor: '#2563eb',
+              secondaryColor: '#64748b',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '16px'
+            },
+            isPublished: false
+          });
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
+    } else {
+      // No template ID or portfolio ID, try to load from backup
+      console.log('No template ID or portfolio ID found, checking for backup data');
+      
+      // Try to load from localStorage backup
+      const backupData = localStorage.getItem('editingPortfolioData');
+      if (backupData) {
+        try {
+          const parsedBackupData = JSON.parse(backupData);
+          console.log('Loading portfolio from localStorage backup:', parsedBackupData);
+          
+          if (parsedBackupData && (parsedBackupData.title || parsedBackupData.sections)) {
+            setPortfolio(parsedBackupData);
+            
+            // Select the first section if available
+            if (parsedBackupData.sections && parsedBackupData.sections.length > 0) {
+              setSelectedSection(parsedBackupData.sections[0].id);
+            }
+            
+            toast({
+              title: 'Portfolio Loaded from Backup',
+              description: `Loaded "${parsedBackupData.title}" from local backup`,
+              variant: 'default'
+            });
+            
+            setIsLoading(false);
+            return; // Exit early since we successfully loaded from backup
+          }
+        } catch (backupError) {
+          console.error('Error parsing backup portfolio data:', backupError);
+        }
       }
+      
+      // If no backup data or loading failed, start with a blank portfolio
+      console.log('No backup data found, starting with blank portfolio');
+      setIsLoading(false);
     }
-  }, [portfolioId, location, toast]);
+  }, [paramId, portfolioId, location, toast]);
 
   // Add a new section
   const addSection = (type: SectionType) => {

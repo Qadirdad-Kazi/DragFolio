@@ -30,59 +30,78 @@ const RETRY_DELAY = 1000;
 
 // Helper for API requests with retry logic
 const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCount = 0) => {
-  const token = getToken();
+  const baseUrl = API_URL;
+  const url = `${baseUrl}${endpoint}`;
   
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-    ...options.headers,
-  };
-
-  const url = `${API_URL}${endpoint}`;
   console.log(`Making API request to: ${url}`);
   
+  // Set default headers
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {})
+  };
+  
+  // Add authorization header if token exists
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   try {
+    // Make the request
     const response = await fetch(url, {
       ...options,
       headers,
-      // Add cache control to prevent caching issues
-      cache: 'no-cache',
-      // Add credentials to support cookies for session-based auth
+      mode: 'cors',
       credentials: 'include',
     });
     
+    // Log response status
+    console.log(`API response status: ${response.status} ${response.statusText}`);
+    
+    // Check if response is ok
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        try {
+          errorData = { message: await response.text() };
+        } catch (e2) {
+          errorData = { message: `HTTP Error: ${response.status}` };
+        }
+      }
+      
       console.error(`API request failed: ${url}`, errorData);
       
       // Check if we should retry (server errors 5xx or network issues)
       if (retryCount < MAX_RETRIES && (response.status >= 500 || response.status === 0)) {
-        console.log(`Retrying request (${retryCount + 1}/${MAX_RETRIES})...`);
+        console.log(`Retrying API request (${retryCount + 1}/${MAX_RETRIES}): ${url}`);
         
-        // Exponential backoff: wait longer with each retry
-        const delay = RETRY_DELAY * Math.pow(2, retryCount);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
         
         // Retry the request
         return apiRequest(endpoint, options, retryCount + 1);
       }
       
-      // If we've exhausted retries and it's still failing, throw a more detailed error
-      throw new Error(errorData.message || `API request failed with status ${response.status}`);
+      // If we shouldn't retry or have exceeded max retries, throw the error
+      throw new Error(errorData.message || `API Error: ${response.status}`);
     }
     
-    // For successful responses, parse and return the JSON
-    return response.json();
+    // Parse and return the response
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error(`API request error for ${url}:`, error);
+    // Handle network errors
+    console.error(`API request failed: ${url}`, error);
     
-    // Retry on network errors if we haven't exceeded max retries
-    if (retryCount < MAX_RETRIES && ((error instanceof TypeError) || (typeof error === 'object' && error !== null && 'name' in error && error.name === 'TypeError'))) {
-      console.log(`Network error, retrying request (${retryCount + 1}/${MAX_RETRIES})...`);
+    // Check if we should retry network errors
+    if (retryCount < MAX_RETRIES) {
+      console.log(`Retrying API request after error (${retryCount + 1}/${MAX_RETRIES}): ${url}`);
       
-      // Exponential backoff
-      const delay = RETRY_DELAY * Math.pow(2, retryCount);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
       
       // Retry the request
       return apiRequest(endpoint, options, retryCount + 1);
@@ -116,7 +135,37 @@ export const portfolioApi = {
   },
   
   // Get a specific portfolio
-  getById: (id: string) => apiRequest(`/portfolios/${id}`),
+  getById: async (id: string) => {
+    try {
+      if (!id) {
+        throw new Error('Portfolio ID is required');
+      }
+      
+      // Clean the ID - remove any quotes, spaces, or other characters that might cause issues
+      let portfolioId = String(id).trim();
+      
+      // Remove any quotes that might be present
+      portfolioId = portfolioId.replace(/["']/g, '');
+      
+      // Remove any ObjectId wrapper if present
+      if (portfolioId.includes('ObjectId')) {
+        // Extract just the ID part from ObjectId format
+        const match = portfolioId.match(/ObjectId\(["']?([0-9a-fA-F]+)["']?\)/);
+        if (match && match[1]) {
+          portfolioId = match[1];
+        }
+      }
+      
+      console.log('Getting portfolio with cleaned ID:', portfolioId);
+      
+      const result = await apiRequest(`/portfolios/${portfolioId}`);
+      console.log('Portfolio retrieved successfully:', portfolioId);
+      return result;
+    } catch (error) {
+      console.error(`Error getting portfolio ${id}:`, error);
+      throw error;
+    }
+  },
   
   // Create a new portfolio
   create: (data: Partial<Portfolio> & { template?: string }) => {
@@ -141,22 +190,50 @@ export const portfolioApi = {
         throw new Error('Invalid portfolio ID: ID is required');
       }
       
-      // Convert to string if it's not already
-      const portfolioId = String(id).trim();
+      // Clean the ID - remove any quotes, spaces, or other characters that might cause issues
+      let portfolioId = String(id).trim();
       
-      if (!portfolioId) {
-        throw new Error('Invalid portfolio ID: Empty ID after trimming');
+      // Remove any quotes that might be present
+      portfolioId = portfolioId.replace(/["']/g, '');
+      
+      // Remove any ObjectId wrapper if present
+      if (portfolioId.includes('ObjectId')) {
+        // Extract just the ID part from ObjectId format
+        const match = portfolioId.match(/ObjectId\(["']?([0-9a-fA-F]+)["']?\)/);
+        if (match && match[1]) {
+          portfolioId = match[1];
+        }
       }
       
-      console.log('Attempting to delete portfolio with ID:', portfolioId);
+      if (!portfolioId) {
+        throw new Error('Invalid portfolio ID: Empty ID after cleaning');
+      }
       
-      // Make the delete request
-      const result = await apiRequest(`/portfolios/${portfolioId}`, {
-        method: 'DELETE',
-      });
+      console.log('Attempting to delete portfolio with cleaned ID:', portfolioId);
       
-      console.log('Portfolio deleted successfully:', portfolioId);
-      return result;
+      try {
+        // Make the delete request
+        const result = await apiRequest(`/portfolios/${portfolioId}`, {
+          method: 'DELETE',
+        });
+        
+        console.log('Portfolio deleted successfully:', portfolioId);
+        return result;
+      } catch (apiError) {
+        // Handle API-specific errors
+        console.error(`API error deleting portfolio ${portfolioId}:`, apiError);
+        
+        // Add a small delay and try again once - this helps with transient issues
+        console.log('Retrying deletion after a short delay...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const retryResult = await apiRequest(`/portfolios/${portfolioId}`, {
+          method: 'DELETE',
+        });
+        
+        console.log('Portfolio deleted successfully on retry:', portfolioId);
+        return retryResult;
+      }
     } catch (error) {
       console.error(`Error deleting portfolio ${id}:`, error);
       
@@ -166,6 +243,8 @@ export const portfolioApi = {
           throw new Error(`Portfolio not found with ID: ${id}`);
         } else if (error.message.includes('401') || error.message.includes('403')) {
           throw new Error('Not authorized to delete this portfolio');
+        } else if (error.message.includes('SyntaxError')) {
+          throw new Error(`Invalid portfolio ID format: ${id}. Please try refreshing the page.`);
         }
       }
       

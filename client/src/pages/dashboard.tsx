@@ -273,17 +273,35 @@ function Dashboard() {
   };
 
   const handleEditPortfolio = (portfolio: Portfolio) => {
-    // Check for either id or _id (MongoDB style)
-    // Use String() to ensure we have a string value, not undefined
-    const portfolioId = String(portfolio.id || portfolio._id || '');
+    // Validate portfolio exists and has an ID
+    if (!portfolio) {
+      console.error('No portfolio provided for editing');
+      alert('Cannot edit portfolio: Missing portfolio data');
+      return;
+    }
+
+    // Check all possible ID fields
+    const portfolioId = portfolio._id || portfolio.id;
     
     if (!portfolioId) {
-      console.error('No portfolio ID provided for editing:', portfolio);
+      console.error('No portfolio ID found in portfolio object:', portfolio);
       alert('Cannot edit portfolio: Missing ID');
       return;
     }
     
+    // Log the full portfolio object for debugging
+    console.log('Full portfolio object being edited:', JSON.stringify(portfolio));
     console.log('Editing portfolio with ID:', portfolioId, 'Title:', portfolio.title);
+    
+    // Store the portfolio data in localStorage for backup
+    try {
+      localStorage.setItem('editingPortfolioData', JSON.stringify(portfolio));
+      console.log('Saved portfolio data to localStorage for backup');
+    } catch (error) {
+      console.error('Failed to save portfolio data to localStorage:', error);
+    }
+    
+    // Navigate to editor with the ID as a query parameter
     navigate(`/editor?id=${portfolioId}`);
   };
 
