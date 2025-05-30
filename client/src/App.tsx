@@ -5,7 +5,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { Suspense, lazy, useEffect } from 'react';
-import { LazyLoad } from './components/PerformanceOptimizer';
 import Navbar from "./components/Navbar";
 import { useAuth, AuthProvider } from "./hooks/useAuth";
 
@@ -19,7 +18,6 @@ const Preview = lazy(() => import("./pages/preview"));
 const Login = lazy(() => import("./pages/login"));
 const Register = lazy(() => import("./pages/register"));
 const Admin = lazy(() => import("./pages/admin"));
-const ConnectionTest = lazy(() => import("./pages/connection-test"));
 
 // Preload critical routes after initial render
 const preloadCriticalRoutes = () => {
@@ -80,7 +78,6 @@ function Router() {
         </Route>
         <Route path="/templates" component={Templates} />
         <Route path="/preview" component={Preview} />
-        <Route path="/connection-test" component={ConnectionTest} />
         <Route path="/admin">
           {() => <ProtectedRoute component={Admin} path="/admin" />}
         </Route>
