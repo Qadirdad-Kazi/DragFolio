@@ -86,8 +86,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Ensure that inline scripts and styles are allowed in the build
-        inlineDynamicImports: true,
+        // Configure manual chunks for better code splitting
         manualChunks: {
           vendor: [
             'react', 
