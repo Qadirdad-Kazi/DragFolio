@@ -65,15 +65,38 @@ app.use(express.urlencoded({ extended: true }));
 // Registration control middleware
 app.use(createMiddleware());
 
-// CORS configuration - simplified to allow all origins for now
+// CORS configuration using environment variables
+const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || '';
+const allowedOrigins = allowedOriginsEnv.split(',').map(origin => origin.trim()).filter(Boolean);
+
+// If no origins specified in env, use a default for development
+if (allowedOrigins.length === 0) {
+  allowedOrigins.push('http://localhost:5173');
+  // For testing, temporarily add Netlify domain
+  if (process.env.NODE_ENV === 'production') {
+    allowedOrigins.push('https://dragfolio.netlify.app');
+  }
+}
+
 app.use(cors({
-  origin: '*', // Allow all origins temporarily to debug
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked request from:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
 }));
 
 // Log CORS configuration
-console.log('CORS configured to allow all origins temporarily for debugging');
+console.log('CORS configured with allowed origins:', allowedOrigins);
 
 // Database connection
 const DATABASE_URL = process.env.DATABASE_URL || '';
