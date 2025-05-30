@@ -85,10 +85,10 @@ app.use(createMiddleware());
 // Add CORS headers directly for maximum compatibility
 app.use((req, res, next) => {
   // Set CORS headers
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins since we're not using credentials
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Client-Performance-Metrics');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Credentials', 'false'); // Match client-side credentials: 'omit'
 
   // Handle preflight requests
   if (req.method === 'OPTIONS') {

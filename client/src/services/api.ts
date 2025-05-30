@@ -2,23 +2,22 @@ import { Portfolio, Template, Section, Theme } from '@/types';
 
 // Determine the base API URL dynamically with auto-detection
 const determineApiUrl = () => {
-  // Check if we have an explicit API URL from environment variables
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+  // Check for explicit API URL from environment variables
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  if (envApiUrl) {
+    console.log('Using API URL from environment:', envApiUrl);
+    return envApiUrl;
   }
   
-  // Check if we're in production (deployed) or development
   const isProd = import.meta.env.MODE === 'production';
   
   // If in production and no explicit API URL is set, use Vercel deployment URL
   if (isProd) {
-    // This assumes your API is deployed to Vercel and you've set VITE_API_URL in .env.production
-    // If not set, fallback to relative URL which requires proper CORS and proxy configuration
+    // Fallback to relative URL which requires proper CORS and proxy configuration
     return '/api';
   }
   
   // In development, use the /api prefix that will be handled by Vite's proxy
-  // This allows the port to be auto-detected by the Vite proxy configuration
   return '/api';
 };
 
@@ -86,7 +85,8 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}, retryCoun
       ...options,
       headers,
       mode: 'cors',
-      credentials: 'include',
+      // Don't send credentials for now to avoid CORS issues
+      credentials: 'omit',
     });
     
     // Log response status
