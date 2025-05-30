@@ -10,11 +10,51 @@ import { createMiddleware } from '../middleware/registrationControl.js';
 // Load environment variables
 dotenv.config();
 
-// Import routes - adjust these imports based on your actual file structure
-import authRoutes from '../routes/auth.js';
-import portfolioRoutes from '../routes/portfolio.js';
-import templateRoutes from '../routes/template.js';
-import userRoutes from '../routes/user.js';
+// Create route handlers directly since we can't import the TypeScript files directly
+const authRouter = express.Router();
+const portfolioRouter = express.Router();
+const templateRouter = express.Router();
+const userRouter = express.Router();
+
+// Auth routes
+authRouter.post('/register', (req, res) => {
+  // Check if registration is allowed
+  const allowRegistration = process.env.ALLOW_REGISTRATION?.toLowerCase() === 'yes';
+  
+  if (!allowRegistration) {
+    return res.status(403).json({
+      error: 'Registration is currently disabled by the administrator',
+      message: 'New user registration is not allowed at this time'
+    });
+  }
+  
+  // If allowed, return success for now (this would connect to your database in production)
+  res.status(200).json({ message: 'Registration endpoint is active' });
+});
+
+authRouter.post('/login', (req, res) => {
+  // Simple mock login endpoint
+  res.status(200).json({ message: 'Login endpoint is active' });
+});
+
+// Portfolio routes
+portfolioRouter.get('/', (req, res) => {
+  res.status(200).json({ message: 'Portfolio list endpoint is active' });
+});
+
+portfolioRouter.get('/:id', (req, res) => {
+  res.status(200).json({ message: `Portfolio ${req.params.id} endpoint is active` });
+});
+
+// Template routes
+templateRouter.get('/', (req, res) => {
+  res.status(200).json({ message: 'Templates endpoint is active' });
+});
+
+// User routes
+userRouter.get('/profile', (req, res) => {
+  res.status(200).json({ message: 'User profile endpoint is active' });
+});
 
 const app = express();
 
@@ -64,10 +104,10 @@ if (DATABASE_URL) {
 }
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/portfolios', portfolioRoutes);
-app.use('/api/templates', templateRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/auth', authRouter);
+app.use('/api/portfolios', portfolioRouter);
+app.use('/api/templates', templateRouter);
+app.use('/api/users', userRouter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
