@@ -19,6 +19,7 @@ const Preview = lazy(() => import("./pages/preview"));
 const Login = lazy(() => import("./pages/login"));
 const Register = lazy(() => import("./pages/register"));
 const Admin = lazy(() => import("./pages/admin"));
+const ConnectionTest = lazy(() => import("./pages/connection-test"));
 
 // Preload critical routes after initial render
 const preloadCriticalRoutes = () => {
@@ -79,6 +80,7 @@ function Router() {
         </Route>
         <Route path="/templates" component={Templates} />
         <Route path="/preview" component={Preview} />
+        <Route path="/connection-test" component={ConnectionTest} />
         <Route path="/admin">
           {() => <ProtectedRoute component={Admin} path="/admin" />}
         </Route>
