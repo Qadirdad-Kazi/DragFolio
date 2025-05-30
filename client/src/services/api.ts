@@ -14,9 +14,10 @@ const determineApiUrl = () => {
   
   // If in production and no explicit API URL is set, use Vercel deployment URL
   if (isProd) {
-    console.log('No VITE_API_URL found, using fallback URL: /api');
-    // Fallback to relative URL which requires proper CORS and proxy configuration
-    return 'https://drag-folio.vercel.app/api';
+    // Use the main Vercel domain
+    const vercelUrl = 'https://drag-folio.vercel.app/api';
+    console.log('No VITE_API_URL found, using fallback URL:', vercelUrl);
+    return vercelUrl;
   }
   
   // In development, use the /api prefix that will be handled by Vite's proxy

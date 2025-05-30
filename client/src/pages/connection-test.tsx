@@ -109,14 +109,93 @@ const ConnectionTest: React.FC = () => {
     }
   };
 
+  // Test a direct full URL endpoint
+  const testDirectEndpoint = async (fullUrl: string) => {
+    setResults(prev => [
+      ...prev,
+      {
+        endpoint: fullUrl,
+        status: 'pending',
+        message: 'Testing direct URL...'
+      }
+    ]);
+    
+    const startTime = performance.now();
+    
+    try {
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+      }
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = { text: await response.text() };
+      }
+      
+      setResults(prev => prev.map(result => 
+        result.endpoint === fullUrl ? {
+          ...result,
+          status: 'success',
+          message: `Direct URL successful (${responseTime}ms)`,
+          responseTime,
+          data
+        } : result
+      ));
+    } catch (error) {
+      const endTime = performance.now();
+      const responseTime = Math.round(endTime - startTime);
+      
+      setResults(prev => prev.map(result => 
+        result.endpoint === fullUrl ? {
+          ...result,
+          status: 'error',
+          message: `Error: ${error instanceof Error ? error.message : String(error)} (${responseTime}ms)`,
+          responseTime
+        } : result
+      ));
+    }
+  };
+
   const runAllTests = async () => {
     setLoading(true);
     setResults([]);
     
-    const endpoints = ['/', '/health', '/api/templates', '/api/auth/status'];
+    // Test endpoints
+    const endpoints = ['/api/templates', '/api/health', '/api/auth/status'];
     
+    // Test all three Vercel domains
+    const vercelDomains = [
+      'https://drag-folio.vercel.app',
+      'https://drag-folio-git-main-qadirdad-kazis-projects.vercel.app',
+      'https://drag-folio-ax52suqvy-qadirdad-kazis-projects.vercel.app'
+    ];
+    
+    // First test the current API URL
     for (const endpoint of endpoints) {
       await testEndpoint(endpoint);
+    }
+    
+    // Then test each Vercel domain directly
+    for (const domain of vercelDomains) {
+      for (const endpoint of endpoints) {
+        const fullEndpoint = `${domain}${endpoint}`;
+        await testEndpoint(fullEndpoint);
+      }
     }
     
     setLoading(false);
