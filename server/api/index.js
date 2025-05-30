@@ -65,35 +65,15 @@ app.use(express.urlencoded({ extended: true }));
 // Registration control middleware
 app.use(createMiddleware());
 
-// CORS configuration
+// CORS configuration - simplified to allow all origins for now
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    
-    // Get allowed origins from environment variable or use defaults
-    const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || '';
-    
-    // Parse comma-separated origins from environment variable
-    const prodOrigins = allowedOriginsEnv.split(',').map(origin => origin.trim()).filter(Boolean);
-    
-    // In development mode, allow all origins
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    // In production, check against the allowed origins list
-    if (prodOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked request from:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*', // Allow all origins temporarily to debug
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Log CORS configuration
+console.log('CORS configured to allow all origins temporarily for debugging');
 
 // Database connection
 const DATABASE_URL = process.env.DATABASE_URL || '';
