@@ -2,7 +2,7 @@
 
 A modern drag-and-drop portfolio builder that allows users to create beautiful, customizable portfolios without writing a single line of code.
 
-![Dragfolio Banner](https://via.placeholder.com/1200x400?text=Dragfolio)
+![DragFolio Screenshot](https://res.cloudinary.com/dzekrrkep/image/upload/v1748585702/projects/p3abvwhel1su9g8jr1ji.png) 
 
 ## 🚀 Features
 
