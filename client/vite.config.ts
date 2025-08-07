@@ -11,14 +11,16 @@ export default defineConfig({
       configureServer: (server) => {
         server.middlewares.use((_req, res, next) => {
           // Remove strict Content-Security-Policy for development
+          // Using a more permissive CSP for development
+          const apiUrl = process.env.VITE_API_URL || `http://localhost:${process.env.PORT || '3001'}`;
           res.setHeader('Content-Security-Policy', 
-            "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; " +
-            "style-src 'self' 'unsafe-inline'; " +
-            "img-src 'self' data: blob:; " +
-            "font-src 'self' data:; " +
-            "connect-src 'self' ws: wss: http: https:; " +
-            "frame-src 'self';"
+            `default-src 'self'; ` +
+            `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://replit.com https://replit.com/public/js/replit-dev-banner.js; ` +
+            `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
+            `img-src 'self' data: blob: https://images.unsplash.com; ` +
+            `font-src 'self' data: https://fonts.gstatic.com; ` +
+            `connect-src 'self' ws: wss: http: https: ${apiUrl} ${apiUrl}/api; ` +
+            `frame-src 'self' https://replit.com;`
           );
           next();
         });

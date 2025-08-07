@@ -80,7 +80,17 @@ router.post('/register', async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ email: validatedData.email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      // Optionally, trigger a resend of registration/verification email
+      try {
+        await sendEmail({
+          to: existingUser.email,
+          subject: 'Account Already Exists',
+          text: `An account with this email already exists. If you did not receive a verification email, please check your spam folder or contact support.`
+        });
+      } catch (emailError) {
+        console.error('Resend registration email error:', emailError);
+      }
+      return res.status(400).json({ message: 'User already exists. Verification email resent if applicable.' });
     }
     
     // Hash password

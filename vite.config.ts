@@ -26,11 +26,14 @@ export default defineConfig({
     },
     headers: {
       'Content-Security-Policy': `
-        script-src 'self' https://replit.com https://replit.com/public/js/replit-dev-banner.js;
-        img-src 'self' https://images.unsplash.com;
         default-src 'self';
-        connect-src 'self' http://localhost:${process.env.VITE_API_PORT || '3002'};
-      `
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://replit.com https://replit.com/public/js/replit-dev-banner.js;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: https://images.unsplash.com;
+        connect-src 'self' ws: http://localhost:${process.env.PORT || '3001'} http://localhost:${process.env.VITE_API_PORT || '3002'} https://replit.com;
+        frame-src 'self' https://replit.com;
+      `.replace(/\s+/g, ' ').trim()
     }
   },
   resolve: {
