@@ -163,7 +163,14 @@ app.get('/health', (req, res) => {
 
 // Root endpoint
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'DragFolio API is running' });
+  let dbStatus = 'disconnected';
+  if (mongoose.connection.readyState === 1) dbStatus = 'connected';
+  else if (mongoose.connection.readyState === 2) dbStatus = 'connecting';
+  else if (mongoose.connection.readyState === 3) dbStatus = 'disconnecting';
+  res.status(200).json({
+    message: 'DragFolio API is running',
+    dbStatus
+  });
 });
 
 // Error handling middleware
