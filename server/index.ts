@@ -105,6 +105,19 @@ if (DATABASE_URL) {
 export { db };
 
 // API routes
+
+// Root endpoint for API and DB status
+app.get('/', (req, res) => {
+  let dbStatus = 'disconnected';
+  if (db.readyState === 1) dbStatus = 'connected';
+  else if (db.readyState === 2) dbStatus = 'connecting';
+  else if (db.readyState === 3) dbStatus = 'disconnecting';
+  res.json({
+    message: 'DragFolio API is running',
+    dbStatus
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/portfolios', portfolioRoutes);
 app.use('/api/templates', templateRoutes);
