@@ -47,9 +47,10 @@ export default function Register() {
     try {
       await register(email, password, name);
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Registration error:', err);
-      setError('Failed to create account. Please try again.');
+      // Show the actual error message from the backend
+      setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }

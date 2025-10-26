@@ -117,6 +117,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Get API URL from environment variable and remove trailing slash
       const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
       
+      // Debug logging
+      console.log('Registration - Using API URL:', API_URL);
+      console.log('Registration - Full endpoint:', `${API_URL}/api/auth/register`);
+      console.log('Registration - VITE_API_URL env:', import.meta.env.VITE_API_URL);
+      
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
