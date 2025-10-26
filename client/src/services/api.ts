@@ -6,7 +6,8 @@ const determineApiUrl = () => {
   const envApiUrl = import.meta.env.VITE_API_URL;
   if (envApiUrl) {
     console.log('Using API URL from environment:', envApiUrl);
-    return envApiUrl;
+    // Remove trailing slash to avoid double slashes
+    return envApiUrl.replace(/\/+$/, '');
   }
   
   const isProd = import.meta.env.MODE === 'production';
