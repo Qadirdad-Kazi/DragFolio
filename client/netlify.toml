@@ -4,13 +4,8 @@
   
 [build.environment]
   NODE_VERSION = "18"
-  # API URL will be set in Netlify dashboard environment variables
+  # IMPORTANT: Set VITE_API_URL in Netlify dashboard → Site settings → Environment variables
   # VITE_API_URL = "https://drag-folio-five.vercel.app"
-
-[[context.production.environment]]
-  # This is a placeholder - set VITE_API_URL in Netlify dashboard
-  # Go to: Site settings → Environment variables
-  # Add: VITE_API_URL = https://drag-folio-five.vercel.app
 
 # Handle SPA routing by redirecting all requests to index.html
 [[redirects]]
