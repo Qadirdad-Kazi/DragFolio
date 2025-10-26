@@ -58,8 +58,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Get API URL from environment variable
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      // Get API URL from environment variable and remove trailing slash
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
       
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
@@ -114,8 +114,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Password must be at least 6 characters');
       }
       
-      // Get API URL from environment variable
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      // Get API URL from environment variable and remove trailing slash
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
       
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
@@ -161,7 +161,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const resetPassword = async (email: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3001/api/auth/reset-password', {
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -184,7 +185,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const verifyEmail = async (token: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3001/api/auth/verify-email', {
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+      const response = await fetch(`${API_URL}/api/auth/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +212,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const resendVerification = async (email: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3001/api/auth/resend-verification', {
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+      const response = await fetch(`${API_URL}/api/auth/resend-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +241,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Not authenticated');
       }
       
-      const response = await fetch('http://localhost:3001/api/auth/update-profile', {
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+      const response = await fetch(`${API_URL}/api/auth/update-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -271,11 +275,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       // Validate password strength
-      if (newPassword.length < 8) {
-        throw new Error('New password must be at least 8 characters');
+      if (newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters');
       }
       
-      const response = await fetch('http://localhost:3001/api/auth/update-password', {
+      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+      const response = await fetch(`${API_URL}/api/auth/update-password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
