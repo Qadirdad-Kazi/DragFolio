@@ -22,16 +22,109 @@ import {
   Stack,
   CircularProgress,
   Paper,
-  Chip
+  Chip,
+  Fade,
+  Zoom,
+  Avatar,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { styled, keyframes } from '@mui/material/styles';
 
 import {
   Visibility as VisibilityIcon,
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  AutoAwesome as SparklesIcon,
+  TrendingUp as TrendingUpIcon,
+  Rocket as RocketIcon,
 } from '@mui/icons-material';
 import { portfolioApi, templateApi } from '../services/api';
+
+// Animations
+const float = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+`;
+
+// Styled components for enhanced UI
+const DashboardContainer = styled(Box)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  minHeight: '100vh',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: 'radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+    pointerEvents: 'none',
+  },
+}));
+
+const WelcomeCard = styled(Paper)(({ theme }) => ({
+  background: 'rgba(255, 255, 255, 0.95)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: '24px',
+  padding: '32px',
+  marginBottom: '32px',
+  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  position: 'relative',
+  overflow: 'hidden',
+}));
+
+const StatsCard = styled(Card)(({ theme }) => ({
+  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: '20px',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-8px)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const PortfolioCard = styled(Card)(({ theme }) => ({
+  background: 'rgba(255, 255, 255, 0.95)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: '20px',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  overflow: 'hidden',
+  position: 'relative',
+  '&:hover': {
+    transform: 'translateY(-8px) scale(1.02)',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const CreateButton = styled(Button)(({ theme }) => ({
+  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+  borderRadius: '16px',
+  padding: '16px 32px',
+  fontSize: '1.1rem',
+  fontWeight: 700,
+  textTransform: 'none',
+  color: 'white',
+  boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    background: 'linear-gradient(45deg, #5a6fd8, #6b42a0)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.4)',
+  },
+}));
 
 function Dashboard() {
   const { isAuthenticated, user } = useAuth();

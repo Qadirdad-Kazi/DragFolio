@@ -11,7 +11,13 @@ import {
   CircularProgress,
   Paper,
   IconButton,
+  Divider,
+  Chip,
+  Tooltip,
+  Fade,
+  Zoom,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import {
   Person as UserIcon,
   Code as CodeIcon,
@@ -37,6 +43,48 @@ interface EditorSidebarProps {
   deletePortfolio: (id: string) => Promise<void>;
   isSaving: boolean;
 }
+
+// Styled components for enhanced UI
+const StyledSidebar = styled(Box)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  borderRadius: '16px',
+  padding: '24px',
+  margin: '16px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  color: 'white',
+}));
+
+const SectionButton = styled(Button)(({ theme }) => ({
+  width: '100%',
+  marginBottom: '12px',
+  padding: '16px',
+  borderRadius: '12px',
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  color: 'white',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  backdropFilter: 'blur(5px)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+  },
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: '12px',
+  padding: '12px 24px',
+  fontWeight: 600,
+  textTransform: 'none',
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+  },
+}));
 
 // Section management functions
 
@@ -95,147 +143,169 @@ export default function EditorSidebar({
 
   return (
     <>
-      <Box
+      <StyledSidebar
         sx={{
-          height: 'calc(100vh - 80px)',
+          height: 'calc(100vh - 120px)',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           p: 2,
         }}
       >
-        <Typography variant="h6" sx={{ mb: 3, color: (theme) => theme.palette.mode === 'dark' ? 'common.white' : 'text.primary' }}>
-          Portfolio Builder
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            mb: 4, 
+            fontWeight: 700,
+            textAlign: 'center',
+            background: 'linear-gradient(45deg, #fff, #e3f2fd)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          🚀 Portfolio Builder
         </Typography>
 
-        {/* Add Section */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: (theme) => theme.palette.mode === 'dark' ? 'common.white' : 'text.primary' }}>
-            Add Section
+        {/* Portfolio Info */}
+        <Paper 
+          sx={{ 
+            p: 2, 
+            mb: 3, 
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white' }}>
+            {portfolio.title}
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+          <Typography variant="body2" sx={{ opacity: 0.8, color: 'white' }}>
+            {portfolio.sections?.length || 0} sections • Last saved {new Date().toLocaleDateString()}
+          </Typography>
+        </Paper>
+
+        {/* Add Section */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
+            ➕ Add Sections
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            <Tooltip title="Add an About Me section" arrow>
+              <SectionButton
                 startIcon={<UserIcon />}
                 onClick={() => addSection('about')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 About Me
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+              </SectionButton>
+            </Tooltip>
+            <Tooltip title="Showcase your projects" arrow>
+              <SectionButton
                 startIcon={<CodeIcon />}
                 onClick={() => addSection('projects')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 Projects
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+              </SectionButton>
+            </Tooltip>
+            <Tooltip title="Display your skills" arrow>
+              <SectionButton
                 startIcon={<AwardIcon />}
                 onClick={() => addSection('skills')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 Skills
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+              </SectionButton>
+            </Tooltip>
+            <Tooltip title="Add your resume" arrow>
+              <SectionButton
                 startIcon={<FileTextIcon />}
                 onClick={() => addSection('resume')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 Resume
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+              </SectionButton>
+            </Tooltip>
+            <Tooltip title="Add testimonials" arrow>
+              <SectionButton
                 startIcon={<MessageSquareIcon />}
                 onClick={() => addSection('testimonials')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 Testimonials
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+              </SectionButton>
+            </Tooltip>
+            <Tooltip title="Add a blog section" arrow>
+              <SectionButton
                 startIcon={<BookOpenIcon />}
                 onClick={() => addSection('blog')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 Blog
-              </Button>
-            </Box>
-            <Box sx={{ flexGrow: 1, minWidth: '50%' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                fullWidth
+              </SectionButton>
+            </Tooltip>
+            <Tooltip title="Add contact information" arrow>
+              <SectionButton
                 startIcon={<MailIcon />}
                 onClick={() => addSection('contact')}
-                sx={{ justifyContent: 'flex-start' }}
               >
                 Contact
-              </Button>
-            </Box>
+              </SectionButton>
+            </Tooltip>
           </Box>
         </Box>
 
+        <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+
         {/* Sections List */}
         <Box sx={{ flexGrow: 1, mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Sections
+          <Typography variant="h6" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
+            📋 Your Sections
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {portfolio.sections.length === 0 ? (
-              <Box sx={{ p: 2, textAlign: 'center', borderStyle: 'dashed', bgcolor: 'background.default' }}>
-                <Typography variant="body2" color="text.secondary">
-                  No sections added yet. Add a section to get started.
-                </Typography>
-              </Box>
+              <Fade in={true}>
+                <Paper sx={{ 
+                  p: 3, 
+                  textAlign: 'center', 
+                  borderStyle: 'dashed', 
+                  borderWidth: 2,
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px'
+                }}>
+                  <Typography variant="body2" sx={{ color: 'white', opacity: 0.8 }}>
+                    ✨ No sections added yet. Start building your amazing portfolio!
+                  </Typography>
+                </Paper>
+              </Fade>
             ) : (
               portfolio.sections
                 .sort((a, b) => a.order - b.order)
-                .map((section) => (
-                  <Paper
-                    key={section.id}
-                    elevation={selectedSection === section.id ? 2 : 0}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      p: 1.5,
-                      mb: 1,
-                      bgcolor: selectedSection === section.id ? 'primary.light' : 'background.paper',
-                      border: selectedSection === section.id ? 1 : 0,
-                      borderColor: 'primary.main',
-                      borderRadius: 1,
-                      cursor: 'pointer',
-                      '&:hover': {
-                        bgcolor: selectedSection === section.id ? 'primary.light' : 'action.hover',
-                      },
-                    }}
-                    onClick={() => setSelectedSection(section.id)}
+                .map((section, index) => (
+                  <Zoom in={true} style={{ transitionDelay: `${index * 100}ms` }} key={section.id}>
+                    <Paper
+                      elevation={selectedSection === section.id ? 8 : 2}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        p: 2,
+                        mb: 1,
+                        backgroundColor: selectedSection === section.id 
+                          ? 'rgba(255, 255, 255, 0.25)' 
+                          : 'rgba(255, 255, 255, 0.1)',
+                        border: selectedSection === section.id ? 2 : 1,
+                        borderColor: selectedSection === section.id 
+                          ? 'rgba(255, 255, 255, 0.5)' 
+                          : 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                        },
+                      }}
+                      onClick={() => setSelectedSection(section.id)}
                   >
                     <Box sx={{ mr: 1, color: 'text.secondary' }}>{getSectionIcon(section.type)}</Box>
                     <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: selectedSection === section.id ? 'medium' : 'normal' }}>
@@ -256,43 +326,54 @@ export default function EditorSidebar({
                       <TrashIcon fontSize="small" />
                     </IconButton>
                   </Paper>
+                  </Zoom>
                 ))
             )}
           </Box>
         </Box>
 
+        <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+
         {/* Actions */}
         <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2" sx={{ px: 2, mb: 1, color: 'text.secondary' }}>
-            Portfolio Actions
+          <Typography variant="h6" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
+            🎯 Actions
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, px: 2 }}>
-            <Button
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <ActionButton
               variant="contained"
               startIcon={<DownloadIcon />}
               onClick={exportPortfolio}
               sx={{ 
-                justifyContent: 'flex-start',
-                bgcolor: 'primary.main',
-                '&:hover': { bgcolor: 'primary.dark' }
+                background: 'linear-gradient(45deg, #4caf50, #66bb6a)',
+                color: 'white',
+                '&:hover': { 
+                  background: 'linear-gradient(45deg, #388e3c, #4caf50)',
+                }
               }}
             >
-              Export Portfolio
-            </Button>
+              📄 Export Portfolio
+            </ActionButton>
             
-            <Button
+            <ActionButton
               variant="outlined"
-              color="error"
               startIcon={<TrashIcon />}
               onClick={() => setDeleteDialogOpen(true)}
               disabled={isSaving}
-              sx={{ justifyContent: 'flex-start' }}
+              sx={{ 
+                borderColor: 'rgba(244, 67, 54, 0.5)',
+                color: '#f44336',
+                '&:hover': { 
+                  borderColor: '#f44336',
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                }
+              }}
             >
-              Delete Portfolio
-            </Button>
+              🗑️ Delete Portfolio
+            </ActionButton>
           </Box>
         </Box>
-      </Box>
+      </StyledSidebar>
 
       {/* Deployment dialog removed */}
 

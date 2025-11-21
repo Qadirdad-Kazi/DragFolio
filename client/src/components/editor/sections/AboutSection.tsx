@@ -23,7 +23,12 @@ export default function AboutSection({
   templateCategory = 'professional' // Default template category
 }: AboutSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const content = section.content || { headline: '', bio: '', image: '' };
+  // Ensure all content properties are always strings to prevent controlled/uncontrolled input warnings
+  const content = {
+    headline: section.content?.headline || '',
+    bio: section.content?.bio || '',
+    image: section.content?.image || ''
+  };
 
   // Handle headline change
   const handleHeadlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {

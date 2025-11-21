@@ -16,16 +16,69 @@ import {
   Divider,
   Stack,
   Link,
-  Grid
+  Grid,
+  Chip,
+  Tooltip,
+  Fade,
+  Slide,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import {
   Check as CheckIcon,
   Palette as PaletteIcon,
   TextFields as TypeIcon,
   Dashboard as LayoutIcon,
   DarkMode as MoonIcon,
-  LightMode as SunIcon
+  LightMode as SunIcon,
+  AutoAwesome as SparklesIcon,
 } from '@mui/icons-material';
+
+// Styled components for enhanced UI
+const CustomizerContainer = styled(Paper)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  borderRadius: '20px',
+  padding: '24px',
+  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  color: 'white',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+    pointerEvents: 'none',
+  },
+}));
+
+const ColorPicker = styled(Box)(({ theme }) => ({
+  width: '48px',
+  height: '48px',
+  borderRadius: '12px',
+  cursor: 'pointer',
+  position: 'relative',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  border: '3px solid rgba(255, 255, 255, 0.3)',
+  '&:hover': {
+    transform: 'scale(1.1)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+  },
+}));
+
+const StyledTab = styled(Tab)(({ theme }) => ({
+  color: 'rgba(255, 255, 255, 0.7)',
+  fontWeight: 600,
+  textTransform: 'none',
+  '&.Mui-selected': {
+    color: 'white',
+    fontWeight: 700,
+  },
+}));
 
 // Theme interface
 interface ThemeOptions {
