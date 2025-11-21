@@ -175,7 +175,7 @@ export default function BlogSection({
                       <Label htmlFor={`post-title-${post.id}`}>Title</Label>
                       <Input
                         id={`post-title-${post.id}`}
-                        value={post.title}
+                        value={post.title || ''}
                         onChange={(e) => updatePost({ ...post, title: e.target.value })}
                         className="mt-1"
                       />
@@ -185,7 +185,7 @@ export default function BlogSection({
                       <Label htmlFor={`post-summary-${post.id}`}>Summary</Label>
                       <Textarea
                         id={`post-summary-${post.id}`}
-                        value={post.summary}
+                        value={post.summary || ''}
                         onChange={(e) => updatePost({ ...post, summary: e.target.value })}
                         rows={3}
                         className="mt-1"
@@ -197,7 +197,7 @@ export default function BlogSection({
                       <Input
                         id={`post-date-${post.id}`}
                         type="date"
-                        value={post.date}
+                        value={post.date || ''}
                         onChange={(e) => updatePost({ ...post, date: e.target.value })}
                         className="mt-1"
                       />
@@ -207,7 +207,7 @@ export default function BlogSection({
                       <Label htmlFor={`post-url-${post.id}`}>Blog URL</Label>
                       <Input
                         id={`post-url-${post.id}`}
-                        value={post.url}
+                        value={post.url || ''}
                         onChange={(e) => updatePost({ ...post, url: e.target.value })}
                         placeholder="https://example.com/blog-post"
                         className="mt-1"
@@ -229,7 +229,7 @@ export default function BlogSection({
                       <Label htmlFor={`post-tags-${post.id}`}>Tags</Label>
                       <Input
                         id={`post-tags-${post.id}`}
-                        value={post.tags.join(', ')}
+                        value={(post.tags || []).join(', ')}
                         onChange={(e) => handleTagsChange(e.target.value, post.id)}
                         placeholder="React, Web Development, Design"
                         className="mt-1"

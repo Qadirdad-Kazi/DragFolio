@@ -145,7 +145,7 @@ export default function TestimonialsSection({
                       <Label htmlFor={`testimonial-quote-${testimonial.id}`}>Quote</Label>
                       <Textarea
                         id={`testimonial-quote-${testimonial.id}`}
-                        value={testimonial.quote}
+                        value={testimonial.quote || ''}
                         onChange={(e) => updateTestimonial({ ...testimonial, quote: e.target.value })}
                         rows={3}
                         className="mt-1"
@@ -156,7 +156,7 @@ export default function TestimonialsSection({
                       <Label htmlFor={`testimonial-author-${testimonial.id}`}>Author Name</Label>
                       <Input
                         id={`testimonial-author-${testimonial.id}`}
-                        value={testimonial.author}
+                        value={testimonial.author || ''}
                         onChange={(e) => updateTestimonial({ ...testimonial, author: e.target.value })}
                         className="mt-1"
                       />
@@ -166,7 +166,7 @@ export default function TestimonialsSection({
                       <Label htmlFor={`testimonial-title-${testimonial.id}`}>Job Title</Label>
                       <Input
                         id={`testimonial-title-${testimonial.id}`}
-                        value={testimonial.title}
+                        value={testimonial.title || ''}
                         onChange={(e) => updateTestimonial({ ...testimonial, title: e.target.value })}
                         className="mt-1"
                       />
@@ -176,7 +176,7 @@ export default function TestimonialsSection({
                       <Label htmlFor={`testimonial-company-${testimonial.id}`}>Company</Label>
                       <Input
                         id={`testimonial-company-${testimonial.id}`}
-                        value={testimonial.company}
+                        value={testimonial.company || ''}
                         onChange={(e) => updateTestimonial({ ...testimonial, company: e.target.value })}
                         className="mt-1"
                       />

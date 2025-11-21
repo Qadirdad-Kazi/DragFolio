@@ -206,7 +206,7 @@ export default function ResumeSection({
                             <Label htmlFor={`exp-title-${exp.id}`}>Job Title</Label>
                             <Input
                               id={`exp-title-${exp.id}`}
-                              value={exp.title}
+                              value={exp.title || ''}
                               onChange={(e) => updateExperience({ ...exp, title: e.target.value })}
                               className="mt-1"
                             />
@@ -223,22 +223,22 @@ export default function ResumeSection({
                         
                         <div>
                           <Label htmlFor={`exp-company-${exp.id}`}>Company</Label>
-                          <Input
-                            id={`exp-company-${exp.id}`}
-                            value={exp.company}
-                            onChange={(e) => updateExperience({ ...exp, company: e.target.value })}
-                            className="mt-1"
-                          />
+                            <Input
+                              id={`exp-company-${exp.id}`}
+                              value={exp.company || ''}
+                              onChange={(e) => updateExperience({ ...exp, company: e.target.value })}
+                              className="mt-1"
+                            />
                         </div>
                         
                         <div>
                           <Label htmlFor={`exp-location-${exp.id}`}>Location</Label>
-                          <Input
-                            id={`exp-location-${exp.id}`}
-                            value={exp.location}
-                            onChange={(e) => updateExperience({ ...exp, location: e.target.value })}
-                            className="mt-1"
-                          />
+                            <Input
+                              id={`exp-location-${exp.id}`}
+                              value={exp.location || ''}
+                              onChange={(e) => updateExperience({ ...exp, location: e.target.value })}
+                              className="mt-1"
+                            />
                         </div>
                         
                         <div className="grid grid-cols-2 gap-3">
@@ -246,7 +246,7 @@ export default function ResumeSection({
                             <Label htmlFor={`exp-start-${exp.id}`}>Start Date</Label>
                             <Input
                               id={`exp-start-${exp.id}`}
-                              value={exp.startDate}
+                              value={exp.startDate || ''}
                               onChange={(e) => updateExperience({ ...exp, startDate: e.target.value })}
                               placeholder="MM/YYYY"
                               className="mt-1"
@@ -258,7 +258,7 @@ export default function ResumeSection({
                             <div className="flex items-center space-x-2 mt-1">
                               <Input
                                 id={`exp-end-${exp.id}`}
-                                value={exp.endDate}
+                                value={exp.endDate || ''}
                                 onChange={(e) => updateExperience({ ...exp, endDate: e.target.value })}
                                 placeholder="MM/YYYY"
                                 disabled={exp.current}
@@ -282,13 +282,13 @@ export default function ResumeSection({
                         
                         <div>
                           <Label htmlFor={`exp-description-${exp.id}`}>Description</Label>
-                          <Textarea
-                            id={`exp-description-${exp.id}`}
-                            value={exp.description}
-                            onChange={(e) => updateExperience({ ...exp, description: e.target.value })}
-                            rows={3}
-                            className="mt-1"
-                          />
+                            <Textarea
+                              id={`exp-description-${exp.id}`}
+                              value={exp.description || ''}
+                              onChange={(e) => updateExperience({ ...exp, description: e.target.value })}
+                              rows={3}
+                              className="mt-1"
+                            />
                         </div>
                       </div>
                     ) : (
@@ -344,7 +344,7 @@ export default function ResumeSection({
                             <Label htmlFor={`edu-degree-${edu.id}`}>Degree</Label>
                             <Input
                               id={`edu-degree-${edu.id}`}
-                              value={edu.degree}
+                              value={edu.degree || ''}
                               onChange={(e) => updateEducation({ ...edu, degree: e.target.value })}
                               className="mt-1"
                             />
@@ -363,7 +363,7 @@ export default function ResumeSection({
                           <Label htmlFor={`edu-institution-${edu.id}`}>Institution</Label>
                           <Input
                             id={`edu-institution-${edu.id}`}
-                            value={edu.institution}
+                            value={edu.institution || ''}
                             onChange={(e) => updateEducation({ ...edu, institution: e.target.value })}
                             className="mt-1"
                           />
@@ -373,7 +373,7 @@ export default function ResumeSection({
                           <Label htmlFor={`edu-location-${edu.id}`}>Location</Label>
                           <Input
                             id={`edu-location-${edu.id}`}
-                            value={edu.location}
+                            value={edu.location || ''}
                             onChange={(e) => updateEducation({ ...edu, location: e.target.value })}
                             className="mt-1"
                           />
@@ -384,7 +384,7 @@ export default function ResumeSection({
                             <Label htmlFor={`edu-start-${edu.id}`}>Start Date</Label>
                             <Input
                               id={`edu-start-${edu.id}`}
-                              value={edu.startDate}
+                              value={edu.startDate || ''}
                               onChange={(e) => updateEducation({ ...edu, startDate: e.target.value })}
                               placeholder="MM/YYYY"
                               className="mt-1"
@@ -396,7 +396,7 @@ export default function ResumeSection({
                             <div className="flex items-center space-x-2 mt-1">
                               <Input
                                 id={`edu-end-${edu.id}`}
-                                value={edu.endDate}
+                                value={edu.endDate || ''}
                                 onChange={(e) => updateEducation({ ...edu, endDate: e.target.value })}
                                 placeholder="MM/YYYY"
                                 disabled={edu.current}
@@ -422,7 +422,7 @@ export default function ResumeSection({
                           <Label htmlFor={`edu-description-${edu.id}`}>Description</Label>
                           <Textarea
                             id={`edu-description-${edu.id}`}
-                            value={edu.description}
+                            value={edu.description || ''}
                             onChange={(e) => updateEducation({ ...edu, description: e.target.value })}
                             rows={3}
                             className="mt-1"
