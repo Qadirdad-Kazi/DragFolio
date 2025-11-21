@@ -160,7 +160,7 @@ export default function ProjectsSection({
                       <Label htmlFor={`project-title-${project.id}`}>Title</Label>
                       <Input
                         id={`project-title-${project.id}`}
-                        value={project.title}
+                        value={project.title || ''}
                         onChange={(e) => updateProject({ ...project, title: e.target.value })}
                         className="mt-1"
                       />
@@ -170,7 +170,7 @@ export default function ProjectsSection({
                       <Label htmlFor={`project-description-${project.id}`}>Description</Label>
                       <Textarea
                         id={`project-description-${project.id}`}
-                        value={project.description}
+                        value={project.description || ''}
                         onChange={(e) => updateProject({ ...project, description: e.target.value })}
                         rows={3}
                         className="mt-1"
@@ -181,7 +181,7 @@ export default function ProjectsSection({
                       <Label htmlFor={`project-technologies-${project.id}`}>Technologies</Label>
                       <Input
                         id={`project-technologies-${project.id}`}
-                        value={project.technologies.join(', ')}
+                        value={(project.technologies || []).join(', ')}
                         onChange={(e) => handleTechnologiesChange(e.target.value, project.id)}
                         placeholder="React, Node.js, MongoDB, etc."
                         className="mt-1"

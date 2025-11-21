@@ -126,7 +126,7 @@ export default function SkillsSection({
                     </div>
                     <Input
                       id={`skill-name-${skill.id}`}
-                      value={skill.name}
+                      value={skill.name || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSkill({ ...skill, name: e.target.value })}
                     />
                     
@@ -136,7 +136,7 @@ export default function SkillsSection({
                       </div>
                       <Slider
                         id={`skill-level-${skill.id}`}
-                        value={[skill.level]}
+                        value={[skill.level || 0]}
                         min={0}
                         max={100}
                         step={5}
