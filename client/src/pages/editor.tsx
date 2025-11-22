@@ -671,112 +671,53 @@ export default function Editor() {
           onExportTypeChange={setExportType}
         />
         {/* Header with actions */}
-        <div className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-10 shadow-sm">
+        <div className="fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-10 shadow-lg">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-white truncate">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               {portfolio?.title || 'Untitled Portfolio'}
             </h1>
             {isSaving && (
-              <span className="text-sm text-blue-600 dark:text-blue-400 flex items-center bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800">
-                <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-blue-500 mr-2"></div>
-                <span className="font-medium">💾 Auto-saving...</span>
-              </span>
+              <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-full border border-blue-200 dark:border-blue-800 shadow-sm">
+                <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-500 border-t-transparent mr-2"></div>
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Saving...</span>
+              </div>
             )}
           </div>
           
-          <div className="flex items-center space-x-5">
-            {/* Export Button - Enhanced with advanced effects */}
+          <div className="flex items-center space-x-3">
+            {/* Export Button - Clean modern design */}
             <button
               onClick={exportPortfolio}
-              className="group relative px-8 py-4 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-700 text-white rounded-2xl font-bold shadow-2xl hover:shadow-purple-500/30 transform hover:scale-110 active:scale-95 transition-all duration-500 ease-out flex items-center overflow-hidden border-2 border-purple-400/30 hover:border-purple-300/60"
+              className="group flex items-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 transition-all duration-200 ease-out"
             >
-              {/* Animated Background Layers */}
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-700 via-indigo-700 to-blue-800 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse"></div>
-              
-              {/* Sparkle Effect */}
-              <div className="absolute top-1 right-1 w-2 h-2 bg-white/60 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
-              <div className="absolute top-3 right-8 w-1 h-1 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce delay-75"></div>
-              <div className="absolute bottom-2 left-3 w-1.5 h-1.5 bg-purple-300 rounded-full opacity-0 group-hover:opacity-100 animate-pulse delay-150"></div>
-              
-              {/* Glow Effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-400 to-indigo-400 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
-              
-              {/* Icon with enhanced animation */}
-              <div className="relative z-20 mr-3 group-hover:animate-bounce">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 transform group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-              
-              {/* Text with typewriter effect simulation */}
-              <span className="relative z-20 text-lg font-black tracking-wide group-hover:tracking-widest transition-all duration-300">
-                🚀 Export Magic
-              </span>
-              
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 ease-out"></div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Export
             </button>
             
-            {/* Save Button - Enhanced with advanced effects */}
+            {/* Save Button - Clean modern design */}
             <button
               onClick={savePortfolio}
               disabled={isSaving}
-              className={`group relative px-8 py-4 rounded-2xl font-bold shadow-2xl transform active:scale-95 transition-all duration-500 ease-out flex items-center overflow-hidden border-2 ${
+              className={`group flex items-center px-4 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transform active:scale-95 transition-all duration-200 ease-out ${
                 isSaving 
-                  ? 'bg-gradient-to-br from-gray-500 to-gray-600 cursor-not-allowed border-gray-400/30 shadow-gray-500/20' 
-                  : 'bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700 hover:from-emerald-600 hover:via-green-700 hover:to-teal-800 hover:scale-110 hover:shadow-emerald-500/30 border-emerald-400/30 hover:border-emerald-300/60'
-              } text-white`}
+                  ? 'bg-gray-500 cursor-not-allowed text-white' 
+                  : 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white hover:scale-105'
+              }`}
             >
-              {/* Animated Background for Success State */}
-              {!isSaving && (
-                <>
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-green-700 to-teal-800 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse"></div>
-                  
-                  {/* Success Sparkles */}
-                  <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-green-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping"></div>
-                  <div className="absolute top-1 right-3 w-1 h-1 bg-emerald-200 rounded-full opacity-0 group-hover:opacity-100 animate-bounce delay-100"></div>
-                  <div className="absolute bottom-2 right-2 w-2 h-2 bg-teal-300 rounded-full opacity-0 group-hover:opacity-100 animate-pulse delay-200"></div>
-                  
-                  {/* Glow Effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-400 to-green-400 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
-                </>
-              )}
-              
-              {/* Loading State Effects */}
-              {isSaving && (
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-blue-400/20 animate-pulse"></div>
-              )}
-              
               {isSaving ? (
-                <div className="relative z-20 flex items-center">
-                  {/* Enhanced Loading Animation */}
-                  <div className="relative mr-3">
-                    <div className="animate-spin rounded-full h-6 w-6 border-3 border-white/30 border-t-white"></div>
-                    <div className="absolute inset-0 animate-ping rounded-full h-6 w-6 border border-white/20"></div>
-                  </div>
-                  <span className="text-lg font-black tracking-wide animate-pulse">
-                    💾 Saving Magic...
-                  </span>
-                </div>
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white mr-2"></div>
+                  Saving...
+                </>
               ) : (
-                <div className="relative z-20 flex items-center">
-                  {/* Icon with enhanced animation */}
-                  <div className="mr-3 group-hover:animate-bounce">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <span className="text-lg font-black tracking-wide group-hover:tracking-widest transition-all duration-300">
-                    ✨ Save Portfolio
-                  </span>
-                </div>
-              )}
-              
-              {/* Shimmer effect for non-saving state */}
-              {!isSaving && (
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 ease-out"></div>
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Save
+                </>
               )}
             </button>
           </div>
@@ -784,45 +725,47 @@ export default function Editor() {
         
         {/* Main content area with sidebar and canvas */}
         <div className="flex w-full h-full pt-16">
-          {/* Left Sidebar */}
-          <div className="w-72 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800 shadow-sm">
-            <EditorSidebar 
-              addSection={addSection} 
-              portfolio={portfolio}
-              selectedSection={selectedSection}
-              setSelectedSection={setSelectedSection}
-              reorderSections={reorderSections}
-              removeSection={removeSection}
-              savePortfolio={savePortfolio}
-              exportPortfolio={exportPortfolio}
-              deletePortfolio={deletePortfolio}
-              isSaving={isSaving}
-            />
-          </div>
-          
-          {/* Main Canvas */}
-          <div className="flex-1 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
-            <EditorCanvas 
-              portfolio={portfolio}
-              selectedSection={selectedSection}
-              setSelectedSection={setSelectedSection}
-              updateSection={updateSection}
-              previewDevice={previewDevice}
-            />
-          </div>
-          
-          {/* Right Settings Panel */}
-          <div className="w-80 border-l border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800 shadow-sm">
-            <EditorSettings 
-              portfolio={portfolio}
-              selectedSection={selectedSection}
-              updateSection={updateSection}
-              updateTheme={updateTheme}
-              updatePortfolioDetails={updatePortfolioDetails}
-              previewDevice={previewDevice}
-              setPreviewDevice={setPreviewDevice}
-            />
-          </div>
+              {/* Left Sidebar */}
+              <div className="w-72 border-r border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800 shadow-sm">
+                <EditorSidebar 
+                  addSection={addSection} 
+                  portfolio={portfolio}
+                  selectedSection={selectedSection}
+                  setSelectedSection={setSelectedSection}
+                  reorderSections={reorderSections}
+                  removeSection={removeSection}
+                  savePortfolio={savePortfolio}
+                  exportPortfolio={exportPortfolio}
+                  deletePortfolio={deletePortfolio}
+                  isSaving={isSaving}
+                />
+              </div>
+              
+              {/* Main Canvas - Shows responsive preview inside editor */}
+              <div className="flex-1 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                <EditorCanvas 
+                  portfolio={portfolio}
+                  selectedSection={selectedSection}
+                  setSelectedSection={setSelectedSection}
+                  updateSection={updateSection}
+                  previewDevice={previewDevice}
+                  setPreviewDevice={setPreviewDevice}
+                />
+              </div>
+              
+              {/* Right Settings Panel - Includes device switcher */}
+              <div className="w-80 border-l border-gray-200 dark:border-gray-700 h-full overflow-y-auto bg-white dark:bg-gray-800 shadow-sm">
+                <EditorSettings 
+                  portfolio={portfolio}
+                  selectedSection={selectedSection}
+                  updateSection={updateSection}
+                  updateTheme={updateTheme}
+                  updatePortfolioDetails={updatePortfolioDetails}
+                  previewDevice={previewDevice}
+                  setPreviewDevice={setPreviewDevice}
+                />
+              </div>
+
         </div>
       </div>
     </DndProvider>

@@ -82,6 +82,7 @@ interface EditorCanvasProps {
   setSelectedSection: (id: string | null) => void;
   updateSection: (id: string, updates: Partial<PortfolioSection>) => void;
   previewDevice: PreviewDeviceType;
+  setPreviewDevice: (device: PreviewDeviceType) => void;
 }
 
 // Define styles for the editor canvas
@@ -110,7 +111,8 @@ export default function EditorCanvas({
   selectedSection,
   setSelectedSection,
   updateSection,
-  previewDevice
+  previewDevice,
+  setPreviewDevice
 }: EditorCanvasProps) {
   // Set up drop target for canvas
   const [{ isOver }, drop] = useDrop({
@@ -231,7 +233,7 @@ export default function EditorCanvas({
                 <Tooltip title="Mobile View (375px)" arrow>
                   <DeviceButton
                     active={previewDevice === 'mobile'}
-                    onClick={() => window.dispatchEvent(new CustomEvent('set-preview-device', { detail: 'mobile' }))}
+                    onClick={() => setPreviewDevice('mobile')}
                   >
                     <PhoneAndroidIcon />
                   </DeviceButton>
@@ -239,7 +241,7 @@ export default function EditorCanvas({
                 <Tooltip title="Tablet View (768px)" arrow>
                   <DeviceButton
                     active={previewDevice === 'tablet'}
-                    onClick={() => window.dispatchEvent(new CustomEvent('set-preview-device', { detail: 'tablet' }))}
+                    onClick={() => setPreviewDevice('tablet')}
                   >
                     <TabletIcon />
                   </DeviceButton>
@@ -247,7 +249,7 @@ export default function EditorCanvas({
                 <Tooltip title="Desktop View (Full Width)" arrow>
                   <DeviceButton
                     active={previewDevice === 'desktop'}
-                    onClick={() => window.dispatchEvent(new CustomEvent('set-preview-device', { detail: 'desktop' }))}
+                    onClick={() => setPreviewDevice('desktop')}
                   >
                     <LaptopIcon />
                   </DeviceButton>
