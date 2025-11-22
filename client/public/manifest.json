@@ -1,0 +1,40 @@
+{
+  "name": "DragFolio - Portfolio Builder",
+  "short_name": "DragFolio",
+  "description": "Create and manage your professional portfolio with drag and drop ease",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg", 
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "business", "design"],
+  "shortcuts": [
+    {
+      "name": "New Portfolio",
+      "short_name": "New",
+      "description": "Create a new portfolio",
+      "url": "/dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "32x32" }]
+    },
+    {
+      "name": "Templates",
+      "short_name": "Templates", 
+      "description": "Browse portfolio templates",
+      "url": "/templates",
+      "icons": [{ "src": "/favicon.svg", "sizes": "32x32" }]
+    }
+  ]
+}
