@@ -192,69 +192,76 @@ export default function ProjectsSection({
                     </div>
 
                     <div>
-                      <Label htmlFor={`project-title-${project.id}`}>Title</Label>
+                      <Label htmlFor={`project-title-${project.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Title</Label>
                       <Input
                         id={`project-title-${project.id}`}
                         value={project.title || ''}
                         onChange={(e) => updateProject({ ...project, title: e.target.value })}
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
+                        placeholder="Project Name"
                       />
+                      <p className="text-xs text-gray-500 mt-1">The name of your project</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`project-description-${project.id}`}>Description</Label>
+                      <Label htmlFor={`project-description-${project.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Description</Label>
                       <Textarea
                         id={`project-description-${project.id}`}
                         value={project.description || ''}
                         onChange={(e) => updateProject({ ...project, description: e.target.value })}
                         rows={3}
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
+                        placeholder="Briefly describe what this project does..."
                       />
+                      <p className="text-xs text-gray-500 mt-1">Describe the key features and your role in the project</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`project-technologies-${project.id}`}>Technologies</Label>
+                      <Label htmlFor={`project-technologies-${project.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Technologies</Label>
                       <Input
                         id={`project-technologies-${project.id}`}
                         value={(project.technologies || []).join(', ')}
                         onChange={(e) => handleTechnologiesChange(e.target.value, project.id)}
                         placeholder="React, Node.js, MongoDB, etc."
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Comma-separated list of technologies</p>
+                      <p className="text-xs text-gray-500 mt-1">Comma-separated list of technologies used (e.g. React, TypeScript, Tailwind)</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`project-github-${project.id}`}>GitHub URL</Label>
+                      <Label htmlFor={`project-github-${project.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">GitHub URL</Label>
                       <Input
                         id={`project-github-${project.id}`}
                         value={project.githubUrl || ''}
                         onChange={(e) => updateProject({ ...project, githubUrl: e.target.value })}
                         placeholder="https://github.com/username/repo"
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Link to the source code repository</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`project-demo-${project.id}`}>Demo URL</Label>
+                      <Label htmlFor={`project-demo-${project.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Demo URL</Label>
                       <Input
                         id={`project-demo-${project.id}`}
                         value={project.demoUrl || ''}
                         onChange={(e) => updateProject({ ...project, demoUrl: e.target.value })}
                         placeholder="https://example.com"
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Link to the live project demo</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`project-image-${project.id}`}>Image URL</Label>
+                      <Label htmlFor={`project-image-${project.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Image URL</Label>
                       <Input
                         id={`project-image-${project.id}`}
                         value={project.image || ''}
                         onChange={(e) => updateProject({ ...project, image: e.target.value })}
                         placeholder="https://example.com/image.jpg"
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
+                      <p className="text-xs text-gray-500 mt-1">URL of a screenshot or preview image for the project</p>
                     </div>
                   </div>
                 ) : (

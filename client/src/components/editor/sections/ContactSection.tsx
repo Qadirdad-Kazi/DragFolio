@@ -165,84 +165,93 @@ export default function ContactSection({
 
       <CardContent>
         {isEditing ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="contact-email">Email</Label>
-                <Input
-                  id="contact-email"
-                  value={contactInfo.email || ''}
-                  onChange={(e) => updateContactInfo({ email: e.target.value })}
-                  placeholder="your.email@example.com"
-                  className="mt-1"
-                />
+                <Label htmlFor="contact-email" className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Email Address</Label>
+                <div className="flex items-center mt-1">
+                  <Mail size={18} className="mr-2 text-gray-500" />
+                  <Input
+                    id="contact-email"
+                    value={contactInfo.email || ''}
+                    onChange={(e) => updateContactInfo({ email: e.target.value })}
+                    className="border-gray-300 dark:border-gray-700"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Primary contact email</p>
               </div>
 
               <div>
-                <Label htmlFor="contact-phone">Phone</Label>
-                <Input
-                  id="contact-phone"
-                  value={contactInfo.phone || ''}
-                  onChange={(e) => updateContactInfo({ phone: e.target.value })}
-                  placeholder="+1 (123) 456-7890"
-                  className="mt-1"
-                />
+                <Label htmlFor="contact-phone" className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Phone Number</Label>
+                <div className="flex items-center mt-1">
+                  <Phone size={18} className="mr-2 text-gray-500" />
+                  <Input
+                    id="contact-phone"
+                    value={contactInfo.phone || ''}
+                    onChange={(e) => updateContactInfo({ phone: e.target.value })}
+                    className="border-gray-300 dark:border-gray-700"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Optional contact number</p>
               </div>
 
               <div>
-                <Label htmlFor="contact-location">Location</Label>
-                <Input
-                  id="contact-location"
-                  value={contactInfo.location || ''}
-                  onChange={(e) => updateContactInfo({ location: e.target.value })}
-                  placeholder="City, Country"
-                  className="mt-1"
-                />
+                <Label htmlFor="contact-location" className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Location</Label>
+                <div className="flex items-center mt-1">
+                  <MapPin size={18} className="mr-2 text-gray-500" />
+                  <Input
+                    id="contact-location"
+                    value={contactInfo.location || ''}
+                    onChange={(e) => updateContactInfo({ location: e.target.value })}
+                    className="border-gray-300 dark:border-gray-700"
+                    placeholder="City, Country"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Your current location</p>
               </div>
 
               <div>
-                <Label htmlFor="contact-website">Website</Label>
-                <Input
-                  id="contact-website"
-                  value={contactInfo.website || ''}
-                  onChange={(e) => updateContactInfo({ website: e.target.value })}
-                  placeholder="https://yourwebsite.com"
-                  className="mt-1"
-                />
+                <Label htmlFor="contact-website" className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Website</Label>
+                <div className="flex items-center mt-1">
+                  <Globe size={18} className="mr-2 text-gray-500" />
+                  <Input
+                    id="contact-website"
+                    value={contactInfo.website || ''}
+                    onChange={(e) => updateContactInfo({ website: e.target.value })}
+                    className="border-gray-300 dark:border-gray-700"
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Personal website or portfolio link</p>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="contact-message">Contact Message</Label>
+              <Label htmlFor="contact-message" className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Custom Message</Label>
               <Textarea
                 id="contact-message"
                 value={contactInfo.message || ''}
                 onChange={(e) => updateContactInfo({ message: e.target.value })}
-                placeholder="Feel free to reach out to me for collaborations or opportunities."
                 rows={3}
-                className="mt-1"
+                className="mt-1 border-gray-300 dark:border-gray-700"
+                placeholder="Feel free to reach out for collaborations or just a friendly hello!"
               />
+              <p className="text-xs text-gray-500 mt-1">A welcoming message for visitors</p>
             </div>
 
             <div>
-              <h4 className="font-medium mb-2">Social Links</h4>
-              {contactInfo.socialLinks.length === 0 ? (
-                <div className="text-center py-4 border rounded-md">
-                  <p className="text-gray-500 mb-2">No social links added yet</p>
-                  <Button variant="outline" size="sm" onClick={addSocialLink}>
-                    <Plus size={16} className="mr-2" />
-                    Add Social Link
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {contactInfo.socialLinks.map(link => (
-                    <div key={link.id} className="flex items-center space-x-3">
+              <Label className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300 block">Social Profiles</Label>
+              <div className="space-y-3">
+                {contactInfo.socialLinks.map((link) => (
+                  <div key={link.id} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-800">
+                    <div className="w-32">
                       <Select
                         value={link.platform}
-                        onValueChange={(value: string) => updateSocialLink(link.id, { platform: value })}
+                        onValueChange={(value) => updateSocialLink(link.id, { platform: value })}
                       >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="h-9 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                           <SelectValue placeholder="Platform" />
                         </SelectTrigger>
                         <SelectContent>
@@ -251,28 +260,36 @@ export default function ContactSection({
                           <SelectItem value="twitter">Twitter</SelectItem>
                           <SelectItem value="instagram">Instagram</SelectItem>
                           <SelectItem value="youtube">YouTube</SelectItem>
+                          <SelectItem value="website">Website</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-
-                      <Input
-                        value={link.url}
-                        onChange={(e) => updateSocialLink(link.id, { url: e.target.value })}
-                        placeholder="https://platform.com/username"
-                        className="flex-1"
-                      />
-
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeSocialLink(link.id)}
-                      >
-                        <Trash2 size={16} className="text-red-500" />
-                      </Button>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <Input
+                      value={link.url}
+                      onChange={(e) => updateSocialLink(link.id, { url: e.target.value })}
+                      placeholder="Profile URL"
+                      className="h-9 border-gray-300 dark:border-gray-700"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSocialLink(link.id)}
+                      className="h-9 w-9 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addSocialLink}
+                  className="mt-2 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                >
+                  <Plus size={14} className="mr-1" /> Add Social Profile
+                </Button>
+              </div>
             </div>
           </div>
         ) : (

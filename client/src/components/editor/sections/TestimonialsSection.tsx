@@ -177,58 +177,63 @@ export default function TestimonialsSection({
                     </div>
 
                     <div>
-                      <Label htmlFor={`testimonial-quote-${testimonial.id}`}>Quote</Label>
+                      <Label htmlFor={`testimonial-quote-${testimonial.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Quote</Label>
                       <Textarea
                         id={`testimonial-quote-${testimonial.id}`}
-                        value={testimonial.quote || ''}
+                        value={testimonial.quote}
                         onChange={(e) => updateTestimonial({ ...testimonial, quote: e.target.value })}
                         rows={3}
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
+                        placeholder="Enter the testimonial text..."
                       />
+                      <p className="text-xs text-gray-500 mt-1">What did the person say about you?</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`testimonial-author-${testimonial.id}`}>Author Name</Label>
+                      <Label htmlFor={`testimonial-author-${testimonial.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Author Name</Label>
                       <Input
                         id={`testimonial-author-${testimonial.id}`}
-                        value={testimonial.author || ''}
+                        value={testimonial.author}
                         onChange={(e) => updateTestimonial({ ...testimonial, author: e.target.value })}
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
+                        placeholder="e.g. John Doe"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Name of the person who gave the testimonial</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`testimonial-title-${testimonial.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Job Title</Label>
+                        <Input
+                          id={`testimonial-title-${testimonial.id}`}
+                          value={testimonial.title}
+                          onChange={(e) => updateTestimonial({ ...testimonial, title: e.target.value })}
+                          className="mt-1 border-gray-300 dark:border-gray-700"
+                          placeholder="e.g. CEO"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`testimonial-company-${testimonial.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Company</Label>
+                        <Input
+                          id={`testimonial-company-${testimonial.id}`}
+                          value={testimonial.company}
+                          onChange={(e) => updateTestimonial({ ...testimonial, company: e.target.value })}
+                          className="mt-1 border-gray-300 dark:border-gray-700"
+                          placeholder="e.g. Tech Corp"
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <Label htmlFor={`testimonial-title-${testimonial.id}`}>Job Title</Label>
-                      <Input
-                        id={`testimonial-title-${testimonial.id}`}
-                        value={testimonial.title || ''}
-                        onChange={(e) => updateTestimonial({ ...testimonial, title: e.target.value })}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`testimonial-company-${testimonial.id}`}>Company</Label>
-                      <Input
-                        id={`testimonial-company-${testimonial.id}`}
-                        value={testimonial.company || ''}
-                        onChange={(e) => updateTestimonial({ ...testimonial, company: e.target.value })}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`testimonial-image-${testimonial.id}`}>Profile Image URL</Label>
+                      <Label htmlFor={`testimonial-image-${testimonial.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Image URL</Label>
                       <Input
                         id={`testimonial-image-${testimonial.id}`}
                         value={testimonial.image || ''}
                         onChange={(e) => updateTestimonial({ ...testimonial, image: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
-                        className="mt-1"
+                        placeholder="https://example.com/photo.jpg"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Optional: Add a profile image for the person giving the testimonial
-                      </p>
+                      <p className="text-xs text-gray-500 mt-1">URL of the author's photo (optional)</p>
                     </div>
                   </div>
                 ) : (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PortfolioSection } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -195,26 +195,32 @@ export default function SkillsSection({
                           <Trash2 size={16} />
                         </Button>
                       </div>
-                      <Input
-                        id={`skill-name-${skill.id}`}
-                        value={skill.name || ''}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSkill({ ...skill, name: e.target.value })}
-                        className="bg-white dark:bg-gray-800"
-                      />
+                      <div>
+                        <Label htmlFor={`skill-name-${skill.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Skill Name</Label>
+                        <Input
+                          id={`skill-name-${skill.id}`}
+                          value={skill.name}
+                          onChange={(e) => updateSkill({ ...skill, name: e.target.value })}
+                          className="mt-1 border-gray-300 dark:border-gray-700"
+                          placeholder="e.g. React, Python, Leadership"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">The name of the skill or technology</p>
+                      </div>
 
-                      <div className="mt-2">
-                        <div className="flex justify-between items-center">
-                          <Label htmlFor={`skill-level-${skill.id}`} className="text-xs text-gray-500">Proficiency: {skill.level}%</Label>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <Label htmlFor={`skill-level-${skill.id}`} className="text-sm font-medium text-gray-700 dark:text-gray-300">Proficiency Level</Label>
+                          <span className="text-sm text-gray-500">{skill.level}%</span>
                         </div>
                         <Slider
                           id={`skill-level-${skill.id}`}
-                          value={[skill.level || 0]}
-                          min={0}
+                          value={[skill.level]}
+                          onValueChange={(value) => updateSkill({ ...skill, level: value[0] })}
                           max={100}
                           step={5}
-                          onValueChange={(value: number[]) => updateSkill({ ...skill, level: value[0] })}
                           className="mt-2"
                         />
+                        <p className="text-xs text-gray-500 mt-2">Drag the slider to set your proficiency level</p>
                       </div>
                     </div>
                   ) : (

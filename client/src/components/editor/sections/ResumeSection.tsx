@@ -263,45 +263,50 @@ export default function ResumeSection({
                         </div>
 
                         <div>
-                          <Label htmlFor={`exp-company-${exp.id}`}>Company</Label>
+                          <Label htmlFor={`experience-company-${exp.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Company</Label>
                           <Input
-                            id={`exp-company-${exp.id}`}
+                            id={`experience-company-${exp.id}`}
                             value={exp.company || ''}
                             onChange={(e) => updateExperience({ ...exp, company: e.target.value })}
-                            className="mt-1"
+                            className="mt-1 border-gray-300 dark:border-gray-700"
+                            placeholder="e.g. Google, Microsoft"
                           />
+                          <p className="text-xs text-gray-500 mt-1">Name of the organization</p>
                         </div>
 
                         <div>
-                          <Label htmlFor={`exp-location-${exp.id}`}>Location</Label>
+                          <Label htmlFor={`experience-location-${exp.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Location</Label>
                           <Input
-                            id={`exp-location-${exp.id}`}
+                            id={`experience-location-${exp.id}`}
                             value={exp.location || ''}
                             onChange={(e) => updateExperience({ ...exp, location: e.target.value })}
-                            className="mt-1"
+                            className="mt-1 border-gray-300 dark:border-gray-700"
+                            placeholder="e.g. San Francisco, CA"
                           />
+                          <p className="text-xs text-gray-500 mt-1">City, State, or Country</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor={`exp-start-${exp.id}`}>Start Date</Label>
+                            <Label htmlFor={`experience-start-${exp.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Start Date</Label>
                             <Input
-                              id={`exp-start-${exp.id}`}
+                              id={`experience-start-${exp.id}`}
                               value={exp.startDate || ''}
                               onChange={(e) => updateExperience({ ...exp, startDate: e.target.value })}
-                              placeholder="MM/YYYY"
-                              className="mt-1"
+                              className="mt-1 border-gray-300 dark:border-gray-700"
+                              placeholder="e.g. Jan 2020"
                             />
                           </div>
 
                           <div>
-                            <Label htmlFor={`exp-end-${exp.id}`}>End Date</Label>
+                            <Label htmlFor={`experience-end-${exp.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">End Date</Label>
                             <div className="flex items-center space-x-2 mt-1">
                               <Input
-                                id={`exp-end-${exp.id}`}
+                                id={`experience-end-${exp.id}`}
                                 value={exp.endDate || ''}
                                 onChange={(e) => updateExperience({ ...exp, endDate: e.target.value })}
-                                placeholder="MM/YYYY"
+                                className="mt-1 border-gray-300 dark:border-gray-700"
+                                placeholder="e.g. Present"
                                 disabled={exp.current}
                               />
                               <div className="flex items-center space-x-1">
@@ -322,14 +327,16 @@ export default function ResumeSection({
                         </div>
 
                         <div>
-                          <Label htmlFor={`exp-description-${exp.id}`}>Description</Label>
+                          <Label htmlFor={`experience-description-${exp.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Description</Label>
                           <Textarea
-                            id={`exp-description-${exp.id}`}
+                            id={`experience-description-${exp.id}`}
                             value={exp.description || ''}
                             onChange={(e) => updateExperience({ ...exp, description: e.target.value })}
                             rows={3}
-                            className="mt-1"
+                            className="mt-1 border-gray-300 dark:border-gray-700"
+                            placeholder="Describe your key responsibilities and achievements..."
                           />
+                          <p className="text-xs text-gray-500 mt-1">Highlight your main contributions and impact</p>
                         </div>
                       </div>
                     ) : (
@@ -382,13 +389,15 @@ export default function ResumeSection({
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <Label htmlFor={`edu-degree-${edu.id}`}>Degree</Label>
+                            <Label htmlFor={`education-degree-${edu.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Degree</Label>
                             <Input
-                              id={`edu-degree-${edu.id}`}
+                              id={`education-degree-${edu.id}`}
                               value={edu.degree || ''}
                               onChange={(e) => updateEducation({ ...edu, degree: e.target.value })}
-                              className="mt-1"
+                              className="mt-1 border-gray-300 dark:border-gray-700"
+                              placeholder="e.g. Bachelor of Science in Computer Science"
                             />
+                            <p className="text-xs text-gray-500 mt-1">The qualification you received</p>
                           </div>
                           <Button
                             variant="ghost"
@@ -401,45 +410,49 @@ export default function ResumeSection({
                         </div>
 
                         <div>
-                          <Label htmlFor={`edu-institution-${edu.id}`}>Institution</Label>
+                          <Label htmlFor={`education-institution-${edu.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Institution</Label>
                           <Input
-                            id={`edu-institution-${edu.id}`}
+                            id={`education-institution-${edu.id}`}
                             value={edu.institution || ''}
                             onChange={(e) => updateEducation({ ...edu, institution: e.target.value })}
-                            className="mt-1"
+                            className="mt-1 border-gray-300 dark:border-gray-700"
+                            placeholder="e.g. Stanford University"
                           />
+                          <p className="text-xs text-gray-500 mt-1">Name of the university or school</p>
                         </div>
 
                         <div>
-                          <Label htmlFor={`edu-location-${edu.id}`}>Location</Label>
+                          <Label htmlFor={`education-location-${edu.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Location</Label>
                           <Input
-                            id={`edu-location-${edu.id}`}
+                            id={`education-location-${edu.id}`}
                             value={edu.location || ''}
                             onChange={(e) => updateEducation({ ...edu, location: e.target.value })}
-                            className="mt-1"
+                            className="mt-1 border-gray-300 dark:border-gray-700"
+                            placeholder="e.g. Stanford, CA"
                           />
+                          <p className="text-xs text-gray-500 mt-1">City, State, or Country</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor={`edu-start-${edu.id}`}>Start Date</Label>
+                            <Label htmlFor={`education-start-${edu.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Start Date</Label>
                             <Input
-                              id={`edu-start-${edu.id}`}
+                              id={`education-start-${edu.id}`}
                               value={edu.startDate || ''}
                               onChange={(e) => updateEducation({ ...edu, startDate: e.target.value })}
-                              placeholder="MM/YYYY"
-                              className="mt-1"
+                              className="mt-1 border-gray-300 dark:border-gray-700"
+                              placeholder="e.g. 2016"
                             />
                           </div>
-
                           <div>
-                            <Label htmlFor={`edu-end-${edu.id}`}>End Date</Label>
+                            <Label htmlFor={`education-end-${edu.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">End Date</Label>
                             <div className="flex items-center space-x-2 mt-1">
                               <Input
-                                id={`edu-end-${edu.id}`}
+                                id={`education-end-${edu.id}`}
                                 value={edu.endDate || ''}
                                 onChange={(e) => updateEducation({ ...edu, endDate: e.target.value })}
-                                placeholder="MM/YYYY"
+                                className="mt-1 border-gray-300 dark:border-gray-700"
+                                placeholder="e.g. 2020"
                                 disabled={edu.current}
                               />
                               <div className="flex items-center space-x-1">

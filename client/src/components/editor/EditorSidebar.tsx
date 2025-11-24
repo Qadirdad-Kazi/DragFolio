@@ -27,6 +27,7 @@ import {
   Mail as MailIcon,
   GetApp as DownloadIcon,
   Delete as TrashIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
 
 interface EditorSidebarProps {
@@ -116,6 +117,7 @@ export default function EditorSidebar({
   addSection,
   removeSection,
   reorderSections: _reorderSections,
+  savePortfolio,
   exportPortfolio,
   // deployPortfolio removed,
   deletePortfolio,
@@ -365,6 +367,25 @@ export default function EditorSidebar({
             🎯 Actions
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <ActionButton
+              variant="contained"
+              startIcon={isSaving ? <CircularProgress size={16} /> : <SaveIcon />}
+              onClick={savePortfolio}
+              disabled={isSaving}
+              sx={{
+                background: 'linear-gradient(45deg, #2196f3, #42a5f5)',
+                color: 'white',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1976d2, #2196f3)',
+                },
+                '&:disabled': {
+                  background: 'linear-gradient(45deg, #90a4ae, #b0bec5)',
+                }
+              }}
+            >
+              {isSaving ? '💾 Saving...' : '💾 Save Portfolio'}
+            </ActionButton>
+
             <ActionButton
               variant="contained"
               startIcon={<DownloadIcon />}

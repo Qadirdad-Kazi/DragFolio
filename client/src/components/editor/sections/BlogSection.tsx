@@ -207,69 +207,75 @@ export default function BlogSection({
                     </div>
 
                     <div>
-                      <Label htmlFor={`post-title-${post.id}`}>Title</Label>
+                      <Label htmlFor={`post-title-${post.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Title</Label>
                       <Input
                         id={`post-title-${post.id}`}
-                        value={post.title || ''}
+                        value={post.title}
                         onChange={(e) => updatePost({ ...post, title: e.target.value })}
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
+                        placeholder="Blog Post Title"
                       />
+                      <p className="text-xs text-gray-500 mt-1">The headline of your article</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`post-summary-${post.id}`}>Summary</Label>
+                      <Label htmlFor={`post-summary-${post.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Summary</Label>
                       <Textarea
                         id={`post-summary-${post.id}`}
-                        value={post.summary || ''}
+                        value={post.summary}
                         onChange={(e) => updatePost({ ...post, summary: e.target.value })}
                         rows={3}
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
+                        placeholder="Brief overview of the content..."
                       />
+                      <p className="text-xs text-gray-500 mt-1">A short description to entice readers</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`post-date-${post.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Date</Label>
+                        <Input
+                          id={`post-date-${post.id}`}
+                          type="date"
+                          value={post.date}
+                          onChange={(e) => updatePost({ ...post, date: e.target.value })}
+                          className="mt-1 border-gray-300 dark:border-gray-700"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`post-url-${post.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Link URL</Label>
+                        <Input
+                          id={`post-url-${post.id}`}
+                          value={post.url}
+                          onChange={(e) => updatePost({ ...post, url: e.target.value })}
+                          className="mt-1 border-gray-300 dark:border-gray-700"
+                          placeholder="https://medium.com/..."
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <Label htmlFor={`post-date-${post.id}`}>Publication Date</Label>
-                      <Input
-                        id={`post-date-${post.id}`}
-                        type="date"
-                        value={post.date || ''}
-                        onChange={(e) => updatePost({ ...post, date: e.target.value })}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`post-url-${post.id}`}>Blog URL</Label>
-                      <Input
-                        id={`post-url-${post.id}`}
-                        value={post.url || ''}
-                        onChange={(e) => updatePost({ ...post, url: e.target.value })}
-                        placeholder="https://example.com/blog-post"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`post-image-${post.id}`}>Featured Image URL</Label>
+                      <Label htmlFor={`post-image-${post.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Cover Image URL</Label>
                       <Input
                         id={`post-image-${post.id}`}
                         value={post.image || ''}
                         onChange={(e) => updatePost({ ...post, image: e.target.value })}
                         placeholder="https://example.com/image.jpg"
-                        className="mt-1"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
+                      <p className="text-xs text-gray-500 mt-1">URL of the featured image</p>
                     </div>
 
                     <div>
-                      <Label htmlFor={`post-tags-${post.id}`}>Tags</Label>
+                      <Label htmlFor={`post-tags-${post.id}`} className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Tags</Label>
                       <Input
                         id={`post-tags-${post.id}`}
                         value={(post.tags || []).join(', ')}
                         onChange={(e) => handleTagsChange(e.target.value, post.id)}
-                        placeholder="React, Web Development, Design"
-                        className="mt-1"
+                        placeholder="React, Tutorial, Web Dev"
+                        className="mt-1 border-gray-300 dark:border-gray-700"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Comma-separated list of tags</p>
+                      <p className="text-xs text-gray-500 mt-1">Comma-separated keywords</p>
                     </div>
                   </div>
                 ) : (
