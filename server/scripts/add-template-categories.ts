@@ -56,7 +56,7 @@ const templates: Template[] = templateCategories.map((category, index) => {
     name: `${category.charAt(0).toUpperCase() + category.slice(1)} Portfolio`,
     description: `A professional template for ${category}s to showcase their work and skills.`,
     category,
-    thumbnail: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjNGY0NmU1Ij48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzRmNDZlNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPiR7Y2F0ZWdvcnkudG9VcHBlckNhc2UoKX0gVEVNUExBVEU8L3RleHQ+PC9zdmc+`,
+    thumbnail: `/images/templates/${category}.png`,
     sections: [
       {
         id: generateId(),

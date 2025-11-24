@@ -75,7 +75,7 @@ const templates: Template[] = [
     name: 'Developer Portfolio',
     description: 'A clean, modern template for software developers to showcase their skills and projects.',
     category: 'developer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjM2Y1MWI1Ij48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzNmNTFiNSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPkRldmVsb3BlciBUZW1wbGF0ZTwvdGV4dD48L3N2Zz4=',
+    thumbnail: '/images/templates/developer.png',
     sections: [
       {
         id: generateId(),
@@ -152,7 +152,7 @@ const templates: Template[] = [
     name: 'Designer Portfolio',
     description: 'An elegant template for graphic designers and UI/UX specialists to showcase their creative work.',
     category: 'designer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjUwMDU3Ij48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2Y1MDA1NyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPkRlc2lnbmVyIFRlbXBsYXRlPC90ZXh0Pjwvc3ZnPg==',
+    thumbnail: '/images/templates/designer.png',
     sections: [
       {
         id: 'about-1',
@@ -212,7 +212,7 @@ const templates: Template[] = [
     name: 'Photographer Portfolio',
     description: 'A visually stunning template for photographers to showcase their work and services.',
     category: 'photographer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjOWMyN2IwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzljMjdiMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPlBob3RvZ3JhcGhlciBUZW1wbGF0ZTwvdGV4dD48L3N2Zz4=',
+    thumbnail: '/images/templates/photographer.png',
     sections: [
       {
         id: generateId(),
@@ -276,7 +276,7 @@ const templates: Template[] = [
     name: 'Student Portfolio',
     description: 'A professional template for students to showcase their academic achievements and projects.',
     category: 'student',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjNGNhZjUwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzRjYWY1MCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPlN0dWRlbnQgVGVtcGxhdGU8L3RleHQ+PC9zdmc+',
+    thumbnail: '/images/templates/student.png',
     sections: [
       {
         id: generateId(),
@@ -339,7 +339,7 @@ const templates: Template[] = [
     name: 'Freelancer Portfolio',
     description: 'A versatile template for freelancers to showcase their services and previous work.',
     category: 'freelancer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZmY5ODAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmOTgwMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPkZyZWVsYW5jZXIgVGVtcGxhdGU8L3RleHQ+PC9zdmc+',
+    thumbnail: '/images/templates/freelancer.png',
     sections: [
       {
         id: generateId(),
@@ -415,7 +415,7 @@ const templates: Template[] = [
     name: 'Writer Portfolio',
     description: 'An elegant template for writers and content creators to showcase their work.',
     category: 'freelancer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjMjE5NmYzIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzIxOTZmMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPldyaXRlciBUZW1wbGF0ZTwvdGV4dD48L3N2Zz4=',
+    thumbnail: '/images/templates/writer.png',
     sections: [
       {
         id: generateId(),
@@ -468,7 +468,7 @@ const templates: Template[] = [
     name: 'Artist Portfolio',
     description: 'A visually rich template for artists to showcase their creative works and exhibitions.',
     category: 'designer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZTkxZTYzIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2U5MWU2MyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPkFydGlzdCBUZW1wbGF0ZTwvdGV4dD48L3N2Zz4=',
+    thumbnail: '/images/templates/artist.png',
     sections: [
       {
         id: generateId(),
@@ -519,7 +519,7 @@ const templates: Template[] = [
     name: 'Musician Portfolio',
     description: 'A dynamic template for musicians to showcase their music, performances, and upcoming events.',
     category: 'freelancer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjNjczYWI3Ij48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzY3M2FiNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPk11c2ljaWFuIFRlbXBsYXRlPC90ZXh0Pjwvc3ZnPg==',
+    thumbnail: '/images/templates/artist.png',
     sections: [
       {
         id: generateId(),
@@ -583,7 +583,7 @@ const templates: Template[] = [
     name: 'Teacher Portfolio',
     description: 'A professional template for educators to showcase their teaching philosophy and resources.',
     category: 'student',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjMDA5Njg4Ij48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzAwOTY4OCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPlRlYWNoZXIgVGVtcGxhdGU8L3RleHQ+PC9zdmc+',
+    thumbnail: '/images/templates/educator.png',
     sections: [
       {
         id: generateId(),
@@ -645,7 +645,7 @@ const templates: Template[] = [
     name: 'Entrepreneur Portfolio',
     description: 'A bold template for entrepreneurs and business owners to showcase their ventures and achievements.',
     category: 'freelancer',
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZmY1NzIyIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2ZmNTcyMiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPkVudHJlcHJlbmV1ciBUZW1wbGF0ZTwvdGV4dD48L3N2Zz4=',
+    thumbnail: '/images/templates/business.png',
     sections: [
       {
         id: generateId(),
@@ -723,17 +723,17 @@ export const getTemplates = () => templates;
 router.get('/', (req, res) => {
   try {
     console.log('GET /templates request received');
-    
+
     // Filter by category if provided
     const { category } = req.query;
-    
+
     if (category) {
       console.log('Filtering templates by category:', category);
       const filteredTemplates = templates.filter(t => t.category === String(category) && t.isPublic);
       console.log(`Found ${filteredTemplates.length} templates for category ${category}`);
       return res.json(filteredTemplates);
     }
-    
+
     // Return all public templates
     const publicTemplates = templates.filter(t => t.isPublic);
     console.log(`Returning ${publicTemplates.length} public templates`);
@@ -748,13 +748,13 @@ router.get('/', (req, res) => {
 router.get('/categories', (req, res) => {
   try {
     console.log('GET /templates/categories request received');
-    
+
     // Extract unique categories from templates
     const categories = Array.from(new Set(templates.filter(t => t.isPublic).map(t => t.category)));
     console.log(`Found ${categories.length} unique template categories`);
-    
+
     return res.json(categories);
-  } catch (error) { 
+  } catch (error) {
     console.error('Error in GET /templates/categories:', error);
     return res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
   }
@@ -764,18 +764,18 @@ router.get('/categories', (req, res) => {
 router.get('/:id', (req, res) => {
   try {
     console.log('GET /templates/:id request received for ID:', req.params.id);
-    
+
     const template = templates.find(t => t.id === req.params.id && t.isPublic);
     if (!template) {
       console.log('Template not found with ID:', req.params.id);
       return res.status(404).json({ message: 'Template not found' });
     }
-    
+
     console.log('Template found with ID:', req.params.id);
     return res.json(template);
   } catch (error) {
     console.error('Error in GET /templates/:id:', error);
-    return res.status(500).json({ message: 'Server error', error: error.message });
+    return res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -785,7 +785,7 @@ router.post('/', (req, res) => {
     // This would require admin authentication
     // Validate request body
     const validatedData = templateSchema.parse(req.body);
-    
+
     // Create new template
     const newTemplate = {
       id: Date.now().toString(),
@@ -793,10 +793,10 @@ router.post('/', (req, res) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     } as Template;
-    
+
     // Save template (mock implementation)
     templates.push(newTemplate);
-    
+
     res.status(201).json(newTemplate);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -816,20 +816,20 @@ router.put('/:id', (req, res) => {
     if (templateIndex === -1) {
       return res.status(404).json({ message: 'Template not found' });
     }
-    
+
     // Validate request body
     const validatedData = templateSchema.parse(req.body);
-    
+
     // Update template
     const updatedTemplate = {
       ...templates[templateIndex] as any,
       ...validatedData,
       updatedAt: new Date().toISOString()
     } as Template;
-    
+
     // Save updated template (mock implementation)
     templates[templateIndex] = updatedTemplate;
-    
+
     res.json(updatedTemplate);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -848,10 +848,10 @@ router.delete('/:id', (req, res) => {
   if (templateIndex === -1) {
     return res.status(404).json({ message: 'Template not found' });
   }
-  
+
   // Remove template (mock implementation)
   templates.splice(templateIndex, 1);
-  
+
   res.status(204).send();
 });
 
