@@ -12,7 +12,6 @@ import {
   Paper,
   IconButton,
   Divider,
-  Chip,
   Tooltip,
   Fade,
   Zoom,
@@ -45,7 +44,7 @@ interface EditorSidebarProps {
 }
 
 // Styled components for enhanced UI
-const StyledSidebar = styled(Box)(({ theme }) => ({
+const StyledSidebar = styled(Box)(() => ({
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   borderRadius: '16px',
   padding: '24px',
@@ -56,7 +55,7 @@ const StyledSidebar = styled(Box)(({ theme }) => ({
   color: 'white',
 }));
 
-const SectionButton = styled(Button)(({ theme }) => ({
+const SectionButton = styled(Button)(() => ({
   width: '100%',
   marginBottom: '12px',
   padding: '16px',
@@ -73,7 +72,7 @@ const SectionButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const ActionButton = styled(Button)(({ theme }) => ({
+const ActionButton = styled(Button)(() => ({
   borderRadius: '12px',
   padding: '12px 24px',
   fontWeight: 600,
@@ -116,7 +115,7 @@ export default function EditorSidebar({
   setSelectedSection,
   addSection,
   removeSection,
-  reorderSections,
+  reorderSections: _reorderSections,
   exportPortfolio,
   // deployPortfolio removed,
   deletePortfolio,
@@ -152,10 +151,10 @@ export default function EditorSidebar({
           p: 2,
         }}
       >
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h5"
+          sx={{
+            mb: 4,
             fontWeight: 700,
             textAlign: 'center',
             background: 'linear-gradient(45deg, #fff, #e3f2fd)',
@@ -168,10 +167,10 @@ export default function EditorSidebar({
         </Typography>
 
         {/* Portfolio Info */}
-        <Paper 
-          sx={{ 
-            p: 2, 
-            mb: 3, 
+        <Paper
+          sx={{
+            p: 2,
+            mb: 3,
             backgroundColor: 'rgba(255, 255, 255, 0.15)',
             backdropFilter: 'blur(10px)',
             borderRadius: '12px',
@@ -191,63 +190,89 @@ export default function EditorSidebar({
           <Typography variant="h6" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
             ➕ Add Sections
           </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-            <Tooltip title="Add an About Me section" arrow>
-              <SectionButton
-                startIcon={<UserIcon />}
-                onClick={() => addSection('about')}
-              >
-                About Me
-              </SectionButton>
-            </Tooltip>
-            <Tooltip title="Showcase your projects" arrow>
-              <SectionButton
-                startIcon={<CodeIcon />}
-                onClick={() => addSection('projects')}
-              >
-                Projects
-              </SectionButton>
-            </Tooltip>
-            <Tooltip title="Display your skills" arrow>
-              <SectionButton
-                startIcon={<AwardIcon />}
-                onClick={() => addSection('skills')}
-              >
-                Skills
-              </SectionButton>
-            </Tooltip>
-            <Tooltip title="Add your resume" arrow>
-              <SectionButton
-                startIcon={<FileTextIcon />}
-                onClick={() => addSection('resume')}
-              >
-                Resume
-              </SectionButton>
-            </Tooltip>
-            <Tooltip title="Add testimonials" arrow>
-              <SectionButton
-                startIcon={<MessageSquareIcon />}
-                onClick={() => addSection('testimonials')}
-              >
-                Testimonials
-              </SectionButton>
-            </Tooltip>
-            <Tooltip title="Add a blog section" arrow>
-              <SectionButton
-                startIcon={<BookOpenIcon />}
-                onClick={() => addSection('blog')}
-              >
-                Blog
-              </SectionButton>
-            </Tooltip>
-            <Tooltip title="Add contact information" arrow>
-              <SectionButton
-                startIcon={<MailIcon />}
-                onClick={() => addSection('contact')}
-              >
-                Contact
-              </SectionButton>
-            </Tooltip>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Basic Sections */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Basic
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                <Tooltip title="Add an About Me section" arrow>
+                  <SectionButton
+                    startIcon={<UserIcon />}
+                    onClick={() => addSection('about')}
+                  >
+                    About
+                  </SectionButton>
+                </Tooltip>
+                <Tooltip title="Add contact information" arrow>
+                  <SectionButton
+                    startIcon={<MailIcon />}
+                    onClick={() => addSection('contact')}
+                  >
+                    Contact
+                  </SectionButton>
+                </Tooltip>
+              </Box>
+            </Box>
+
+            {/* Professional Sections */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Professional
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                <Tooltip title="Showcase your projects" arrow>
+                  <SectionButton
+                    startIcon={<CodeIcon />}
+                    onClick={() => addSection('projects')}
+                  >
+                    Projects
+                  </SectionButton>
+                </Tooltip>
+                <Tooltip title="Display your skills" arrow>
+                  <SectionButton
+                    startIcon={<AwardIcon />}
+                    onClick={() => addSection('skills')}
+                  >
+                    Skills
+                  </SectionButton>
+                </Tooltip>
+                <Tooltip title="Add your resume" arrow>
+                  <SectionButton
+                    startIcon={<FileTextIcon />}
+                    onClick={() => addSection('resume')}
+                  >
+                    Resume
+                  </SectionButton>
+                </Tooltip>
+              </Box>
+            </Box>
+
+            {/* Content Sections */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Content
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                <Tooltip title="Add testimonials" arrow>
+                  <SectionButton
+                    startIcon={<MessageSquareIcon />}
+                    onClick={() => addSection('testimonials')}
+                  >
+                    Reviews
+                  </SectionButton>
+                </Tooltip>
+                <Tooltip title="Add a blog section" arrow>
+                  <SectionButton
+                    startIcon={<BookOpenIcon />}
+                    onClick={() => addSection('blog')}
+                  >
+                    Blog
+                  </SectionButton>
+                </Tooltip>
+              </Box>
+            </Box>
           </Box>
         </Box>
 
@@ -261,10 +286,10 @@ export default function EditorSidebar({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {portfolio.sections.length === 0 ? (
               <Fade in={true}>
-                <Paper sx={{ 
-                  p: 3, 
-                  textAlign: 'center', 
-                  borderStyle: 'dashed', 
+                <Paper sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderStyle: 'dashed',
                   borderWidth: 2,
                   borderColor: 'rgba(255, 255, 255, 0.3)',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -288,12 +313,12 @@ export default function EditorSidebar({
                         gap: 2,
                         p: 2,
                         mb: 1,
-                        backgroundColor: selectedSection === section.id 
-                          ? 'rgba(255, 255, 255, 0.25)' 
+                        backgroundColor: selectedSection === section.id
+                          ? 'rgba(255, 255, 255, 0.25)'
                           : 'rgba(255, 255, 255, 0.1)',
                         border: selectedSection === section.id ? 2 : 1,
-                        borderColor: selectedSection === section.id 
-                          ? 'rgba(255, 255, 255, 0.5)' 
+                        borderColor: selectedSection === section.id
+                          ? 'rgba(255, 255, 255, 0.5)'
                           : 'rgba(255, 255, 255, 0.2)',
                         borderRadius: '12px',
                         cursor: 'pointer',
@@ -306,26 +331,26 @@ export default function EditorSidebar({
                         },
                       }}
                       onClick={() => setSelectedSection(section.id)}
-                  >
-                    <Box sx={{ mr: 1, color: 'text.secondary' }}>{getSectionIcon(section.type)}</Box>
-                    <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: selectedSection === section.id ? 'medium' : 'normal' }}>
-                      {section.title}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeSection(section.id);
-                      }}
-                      sx={{
-                        color: 'error.main',
-                        opacity: 0.7,
-                        '&:hover': { opacity: 1 }
-                      }}
                     >
-                      <TrashIcon fontSize="small" />
-                    </IconButton>
-                  </Paper>
+                      <Box sx={{ mr: 1, color: 'text.secondary' }}>{getSectionIcon(section.type)}</Box>
+                      <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: selectedSection === section.id ? 'medium' : 'normal' }}>
+                        {section.title}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSection(section.id);
+                        }}
+                        sx={{
+                          color: 'error.main',
+                          opacity: 0.7,
+                          '&:hover': { opacity: 1 }
+                        }}
+                      >
+                        <TrashIcon fontSize="small" />
+                      </IconButton>
+                    </Paper>
                   </Zoom>
                 ))
             )}
@@ -344,26 +369,26 @@ export default function EditorSidebar({
               variant="contained"
               startIcon={<DownloadIcon />}
               onClick={exportPortfolio}
-              sx={{ 
+              sx={{
                 background: 'linear-gradient(45deg, #4caf50, #66bb6a)',
                 color: 'white',
-                '&:hover': { 
+                '&:hover': {
                   background: 'linear-gradient(45deg, #388e3c, #4caf50)',
                 }
               }}
             >
               📄 Export Portfolio
             </ActionButton>
-            
+
             <ActionButton
               variant="outlined"
               startIcon={<TrashIcon />}
               onClick={() => setDeleteDialogOpen(true)}
               disabled={isSaving}
-              sx={{ 
+              sx={{
                 borderColor: 'rgba(244, 67, 54, 0.5)',
                 color: '#f44336',
-                '&:hover': { 
+                '&:hover': {
                   borderColor: '#f44336',
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
                 }
