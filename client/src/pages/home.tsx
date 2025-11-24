@@ -54,12 +54,183 @@ export default function Home() {
           `,
         }} />
         
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <Grid container spacing={6} alignItems="center">
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
+          <Grid container spacing={8} alignItems="center" sx={{ minHeight: '90vh' }}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ 
+                textAlign: { xs: 'center', md: 'left' }, 
+                pr: { md: 4 },
+                pl: { xs: 2, md: 6 },
+                ml: { md: 4 }
+              }}>
+                <Typography 
+                  variant="h1" 
+                  component="h1" 
+                  sx={{ 
+                    fontWeight: 800,
+                    fontSize: { xs: '3rem', sm: '4rem', md: '5.5rem' },
+                    mb: 3,
+                    color: 'white',
+                    lineHeight: 1.1,
+                    textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+                  }}
+                >
+                  Create Your
+                  <Box component="span" sx={{ 
+                    display: 'block',
+                    background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    Portfolio
+                  </Box>
+                  Without Code
+                </Typography>
+                
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    mb: 5,
+                    color: 'rgba(255,255,255,0.9)',
+                    fontSize: { xs: '1.3rem', md: '1.7rem' },
+                    fontWeight: 400,
+                    maxWidth: 600,
+                    lineHeight: 1.5
+                  }}
+                >
+                  Build stunning, professional portfolios in minutes with our intuitive drag-and-drop builder.
+                </Typography>
+
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 3, 
+                  mb: 6,
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  flexWrap: 'wrap'
+                }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    startIcon={<PlayArrowIcon />}
+                    onClick={() => navigate("/register")}
+                    sx={{
+                      bgcolor: 'white',
+                      color: '#667eea',
+                      px: 5,
+                      py: 2.5,
+                      fontWeight: 'bold',
+                      fontSize: '1.2rem',
+                      borderRadius: 4,
+                      textTransform: 'none',
+                      boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.95)',
+                        transform: 'translateY(-3px)',
+                        boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    Start Building Free
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate("/templates")}
+                    sx={{
+                      borderColor: 'rgba(255,255,255,0.7)',
+                      color: 'white',
+                      px: 5,
+                      py: 2.5,
+                      fontWeight: 'bold',
+                      fontSize: '1.2rem',
+                      borderRadius: 4,
+                      textTransform: 'none',
+                      borderWidth: 2,
+                      '&:hover': {
+                        borderColor: 'white',
+                        bgcolor: 'rgba(255,255,255,0.1)',
+                        transform: 'translateY(-3px)',
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    View Templates
+                  </Button>
+                </Box>
+
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: { xs: 2, md: 4 },
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
+                }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5,
+                    color: 'rgba(255,255,255,0.9)',
+                    fontSize: '1rem',
+                    fontWeight: 500
+                  }}>
+                    <Box sx={{ 
+                      width: 12, 
+                      height: 12, 
+                      bgcolor: '#4ade80', 
+                      borderRadius: '50%',
+                      boxShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
+                    }} />
+                    No Coding Required
+                  </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5,
+                    color: 'rgba(255,255,255,0.9)',
+                    fontSize: '1rem',
+                    fontWeight: 500
+                  }}>
+                    <Box sx={{ 
+                      width: 12, 
+                      height: 12, 
+                      bgcolor: '#4ade80', 
+                      borderRadius: '50%',
+                      boxShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
+                    }} />
+                    100% Free
+                  </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5,
+                    color: 'rgba(255,255,255,0.9)',
+                    fontSize: '1rem',
+                    fontWeight: 500
+                  }}>
+                    <Box sx={{ 
+                      width: 12, 
+                      height: 12, 
+                      bgcolor: '#4ade80', 
+                      borderRadius: '50%',
+                      boxShadow: '0 0 10px rgba(74, 222, 128, 0.5)'
+                    }} />
+                    Mobile Ready
+                  </Box>
+                </Box>
+              </Box>
+            </Grid>
+            
             <Grid item xs={12} md={6}>
               <Box sx={{ 
                 position: 'relative',
-                textAlign: 'center'
+                textAlign: 'center',
+                pl: { md: 4 },
+                pr: { xs: 2, md: 6 },
+                mr: { md: 4 }
               }}>
                 {/* Main Portfolio Preview */}
                 <Box sx={{
@@ -69,7 +240,7 @@ export default function Home() {
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255,255,255,0.2)',
                   boxShadow: '0 25px 50px rgba(0,0,0,0.2)',
-                  transform: 'perspective(1000px) rotateY(5deg)',
+                  transform: 'perspective(1000px) rotateY(-5deg)',
                   transition: 'transform 0.3s ease',
                   '&:hover': {
                     transform: 'perspective(1000px) rotateY(0deg) scale(1.02)',
@@ -81,7 +252,7 @@ export default function Home() {
                   
                   {/* Mock Portfolio Interface */}
                   <Box sx={{ 
-                    height: 350, 
+                    height: 400, 
                     bgcolor: 'rgba(255,255,255,0.95)', 
                     borderRadius: 2,
                     position: 'relative',
@@ -105,30 +276,31 @@ export default function Home() {
                     {/* Content */}
                     <Box sx={{ p: 3 }}>
                       <Box sx={{ 
-                        width: 80, 
-                        height: 80, 
+                        width: 90, 
+                        height: 90, 
                         background: 'linear-gradient(135deg, #667eea, #764ba2)', 
                         borderRadius: '50%',
                         mx: 'auto',
                         mb: 2
                       }} />
-                      <Box sx={{ height: 20, bgcolor: '#1f2937', borderRadius: 1, mb: 1, mx: 4 }} />
-                      <Box sx={{ height: 12, bgcolor: '#6b7280', borderRadius: 1, mb: 3, mx: 6 }} />
+                      <Box sx={{ height: 24, bgcolor: '#1f2937', borderRadius: 1, mb: 1, mx: 3 }} />
+                      <Box sx={{ height: 14, bgcolor: '#6b7280', borderRadius: 1, mb: 3, mx: 5 }} />
                       
-                      <Grid container spacing={1} sx={{ mb: 2 }}>
+                      <Grid container spacing={1} sx={{ mb: 3 }}>
                         <Grid item xs={4}>
-                          <Box sx={{ height: 60, bgcolor: '#e5e7eb', borderRadius: 1 }} />
+                          <Box sx={{ height: 70, bgcolor: '#e5e7eb', borderRadius: 1 }} />
                         </Grid>
                         <Grid item xs={4}>
-                          <Box sx={{ height: 60, bgcolor: '#e5e7eb', borderRadius: 1 }} />
+                          <Box sx={{ height: 70, bgcolor: '#e5e7eb', borderRadius: 1 }} />
                         </Grid>
                         <Grid item xs={4}>
-                          <Box sx={{ height: 60, bgcolor: '#e5e7eb', borderRadius: 1 }} />
+                          <Box sx={{ height: 70, bgcolor: '#e5e7eb', borderRadius: 1 }} />
                         </Grid>
                       </Grid>
                       
-                      <Box sx={{ height: 8, bgcolor: '#d1d5db', borderRadius: 1, mb: 1 }} />
-                      <Box sx={{ height: 8, bgcolor: '#d1d5db', borderRadius: 1, width: '80%' }} />
+                      <Box sx={{ height: 10, bgcolor: '#d1d5db', borderRadius: 1, mb: 1.5 }} />
+                      <Box sx={{ height: 10, bgcolor: '#d1d5db', borderRadius: 1, width: '80%', mb: 1.5 }} />
+                      <Box sx={{ height: 10, bgcolor: '#d1d5db', borderRadius: 1, width: '60%' }} />
                     </Box>
                   </Box>
                 </Box>
@@ -166,130 +338,6 @@ export default function Home() {
                   animation: 'float 3s ease-in-out infinite 1s'
                 }}>
                   <PaletteIcon sx={{ color: 'white', fontSize: 24 }} />
-                </Box>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                <Typography 
-                  variant="h1" 
-                  component="h1" 
-                  sx={{ 
-                    fontWeight: 800,
-                    fontSize: { xs: '3rem', sm: '4rem', md: '5rem' },
-                    mb: 3,
-                    color: 'white',
-                    lineHeight: 1.1,
-                    textShadow: '0 2px 10px rgba(0,0,0,0.3)'
-                  }}
-                >
-                  Create Your
-                  <Box component="span" sx={{ 
-                    display: 'block',
-                    background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    Portfolio
-                  </Box>
-                  Without Code
-                </Typography>
-                
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    mb: 4,
-                    color: 'rgba(255,255,255,0.9)',
-                    fontSize: { xs: '1.2rem', md: '1.5rem' },
-                    fontWeight: 400,
-                    maxWidth: 500
-                  }}
-                >
-                  Build stunning, professional portfolios in minutes with our intuitive drag-and-drop builder.
-                </Typography>
-
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 3, 
-                  mb: 4,
-                  justifyContent: { xs: 'center', md: 'flex-start' },
-                  flexWrap: 'wrap'
-                }}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<PlayArrowIcon />}
-                    onClick={() => navigate("/register")}
-                    sx={{
-                      bgcolor: 'white',
-                      color: '#667eea',
-                      px: 4,
-                      py: 2,
-                      fontWeight: 'bold',
-                      fontSize: '1.1rem',
-                      borderRadius: 3,
-                      textTransform: 'none',
-                      boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
-                      '&:hover': {
-                        bgcolor: 'rgba(255,255,255,0.95)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 12px 35px rgba(0,0,0,0.3)',
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    Start Building Free
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    endIcon={<ArrowForwardIcon />}
-                    onClick={() => navigate("/templates")}
-                    sx={{
-                      borderColor: 'rgba(255,255,255,0.7)',
-                      color: 'white',
-                      px: 4,
-                      py: 2,
-                      fontWeight: 'bold',
-                      fontSize: '1.1rem',
-                      borderRadius: 3,
-                      textTransform: 'none',
-                      borderWidth: 2,
-                      '&:hover': {
-                        borderColor: 'white',
-                        bgcolor: 'rgba(255,255,255,0.1)',
-                        transform: 'translateY(-2px)',
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    View Templates
-                  </Button>
-                </Box>
-
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 4,
-                  justifyContent: { xs: 'center', md: 'flex-start' },
-                  alignItems: 'center',
-                  color: 'rgba(255,255,255,0.8)',
-                  fontSize: '0.9rem'
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 8, height: 8, bgcolor: '#4ade80', borderRadius: '50%' }} />
-                    No Coding Required
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 8, height: 8, bgcolor: '#4ade80', borderRadius: '50%' }} />
-                    100% Free
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 8, height: 8, bgcolor: '#4ade80', borderRadius: '50%' }} />
-                    Mobile Ready
-                  </Box>
                 </Box>
               </Box>
             </Grid>
