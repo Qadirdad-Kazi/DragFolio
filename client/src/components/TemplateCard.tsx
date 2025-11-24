@@ -138,6 +138,11 @@ export default function TemplateCard({ template, onSelect, isLoading, onPreview,
           component="img"
           image={template.thumbnail}
           alt={`${template.name} template`}
+          onError={(e) => {
+            // Fallback to placeholder image if the main image fails to load
+            const target = e.target as HTMLImageElement;
+            target.src = `https://via.placeholder.com/400x225/4f46e5/ffffff?text=${encodeURIComponent(template.name)}`;
+          }}
           sx={{ 
             aspectRatio: '16/9',
             objectFit: 'cover',

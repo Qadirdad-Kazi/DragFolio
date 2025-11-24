@@ -9,7 +9,7 @@ const templateSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
   category: z.enum(['developer', 'designer', 'student', 'freelancer', 'photographer', 'writer', 'artist', 'business', 'educator', 'healthcare']),
-  thumbnail: z.string().url(),
+  thumbnail: z.string().min(1),
   sections: z.array(
     z.object({
       id: z.string(),
@@ -145,7 +145,7 @@ const templates: Template[] = [
     },
     isFeatured: true,
     isPublic: true
-  }
+  },
   {
     id: '2',
     name: 'Designer Portfolio',
