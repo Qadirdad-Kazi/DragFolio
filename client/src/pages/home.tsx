@@ -886,9 +886,21 @@ export default function Home() {
             </Box>
 
             {/* Social Proof */}
-            <Grid container spacing={4} sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Grid container spacing={4} sx={{ 
+              maxWidth: 800, 
+              mx: 'auto',
+              mt: 8,
+              justifyContent: 'center',
+              textAlign: 'center'
+            }}>
               <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
                   <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, mb: 1 }}>
                     10K+
                   </Typography>
@@ -899,7 +911,13 @@ export default function Home() {
               </Grid>
               
               <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
                   <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, mb: 1 }}>
                     50+
                   </Typography>
@@ -910,7 +928,13 @@ export default function Home() {
               </Grid>
               
               <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
                   <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, mb: 1 }}>
                     99%
                   </Typography>
@@ -921,7 +945,13 @@ export default function Home() {
               </Grid>
               
               <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ 
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
                   <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, mb: 1 }}>
                     24/7
                   </Typography>
