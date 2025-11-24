@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus, Trash2, Mail, Phone, MapPin, Globe, Github, Linkedin, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Edit, Plus, Trash2, Mail, Phone, MapPin, Globe, Github, Linkedin, Twitter, Instagram, Youtube, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -28,13 +28,17 @@ interface ContactSectionProps {
   isSelected: boolean;
   onSelect: () => void;
   updateSection: (updates: Partial<PortfolioSection>) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
 export default function ContactSection({
   section,
   isSelected,
   onSelect,
-  updateSection
+  updateSection,
+  onMoveUp,
+  onMoveDown
 }: ContactSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const content = section.content || { email: '', phone: '', location: '', website: '', message: '', socialLinks: [] };
@@ -66,7 +70,7 @@ export default function ContactSection({
       platform: 'github',
       url: ''
     };
-    
+
     updateContactInfo({
       socialLinks: [...contactInfo.socialLinks, newLink]
     });
@@ -75,7 +79,7 @@ export default function ContactSection({
   // Update a social link
   const updateSocialLink = (id: string, updates: Partial<SocialLink>) => {
     updateContactInfo({
-      socialLinks: contactInfo.socialLinks.map(link => 
+      socialLinks: contactInfo.socialLinks.map(link =>
         link.id === id ? { ...link, ...updates } : link
       )
     });
@@ -111,22 +115,54 @@ export default function ContactSection({
       className={`portfolio-section ${isSelected ? 'ring-2 ring-primary' : ''}`}
       onClick={onSelect}
     >
-      <div className="portfolio-section-header">
-        <h3 className="text-xl font-semibold">{section.title}</h3>
-        {isSelected && (
-          <div className="flex space-x-2">
-            <Button variant="ghost" size="sm" onClick={addSocialLink}>
-              <Plus size={16} className="mr-2" />
-              Add Social Link
-            </Button>
-            <Button variant="ghost" size="sm" onClick={toggleEditing}>
-              <Edit size={16} className="mr-2" />
-              {isEditing ? 'Done' : 'Edit'}
-            </Button>
-          </div>
-        )}
+      <div className="portfolio-section-header p-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{section.title}</h3>
       </div>
-      
+
+      {isSelected && (
+        <div className="absolute top-4 -right-16 flex flex-col gap-2 z-10">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveUp}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Up"
+          >
+            <ArrowUp size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveDown}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Down"
+          >
+            <ArrowDown size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={toggleEditing}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={isEditing ? "Finish Editing" : "Edit Section"}
+          >
+            {isEditing ? <Check size={18} className="text-green-600" /> : <Edit size={18} className="text-gray-600 dark:text-gray-300" />}
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={addSocialLink}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Add Social Link"
+          >
+            <Plus size={18} className="text-blue-600" />
+          </Button>
+        </div>
+      )}
+
       <CardContent>
         {isEditing ? (
           <div className="space-y-6">
@@ -141,7 +177,7 @@ export default function ContactSection({
                   className="mt-1"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="contact-phone">Phone</Label>
                 <Input
@@ -152,7 +188,7 @@ export default function ContactSection({
                   className="mt-1"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="contact-location">Location</Label>
                 <Input
@@ -163,7 +199,7 @@ export default function ContactSection({
                   className="mt-1"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="contact-website">Website</Label>
                 <Input
@@ -175,7 +211,7 @@ export default function ContactSection({
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="contact-message">Contact Message</Label>
               <Textarea
@@ -187,7 +223,7 @@ export default function ContactSection({
                 className="mt-1"
               />
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-2">Social Links</h4>
               {contactInfo.socialLinks.length === 0 ? (
@@ -218,16 +254,16 @@ export default function ContactSection({
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                      
+
                       <Input
                         value={link.url}
                         onChange={(e) => updateSocialLink(link.id, { url: e.target.value })}
                         placeholder="https://platform.com/username"
                         className="flex-1"
                       />
-                      
-                      <Button 
-                        variant="ghost" 
+
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => removeSocialLink(link.id)}
                       >
@@ -253,7 +289,7 @@ export default function ContactSection({
                   )}
                 </div>
               )}
-              
+
               <div className="space-y-4">
                 {contactInfo.email && (
                   <div className="flex items-center">
@@ -268,7 +304,7 @@ export default function ContactSection({
                     </div>
                   </div>
                 )}
-                
+
                 {contactInfo.phone && (
                   <div className="flex items-center">
                     <div className="mr-3 bg-primary/10 p-2 rounded-full">
@@ -282,7 +318,7 @@ export default function ContactSection({
                     </div>
                   </div>
                 )}
-                
+
                 {contactInfo.location && (
                   <div className="flex items-center">
                     <div className="mr-3 bg-primary/10 p-2 rounded-full">
@@ -294,7 +330,7 @@ export default function ContactSection({
                     </div>
                   </div>
                 )}
-                
+
                 {contactInfo.website && (
                   <div className="flex items-center">
                     <div className="mr-3 bg-primary/10 p-2 rounded-full">
@@ -302,9 +338,9 @@ export default function ContactSection({
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Website</div>
-                      <a 
-                        href={contactInfo.website.startsWith('http') ? contactInfo.website : `https://${contactInfo.website}`} 
-                        target="_blank" 
+                      <a
+                        href={contactInfo.website.startsWith('http') ? contactInfo.website : `https://${contactInfo.website}`}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-gray-800 hover:text-primary"
                       >
@@ -315,7 +351,7 @@ export default function ContactSection({
                 )}
               </div>
             </div>
-            
+
             {contactInfo.socialLinks.length > 0 && (
               <div>
                 <h4 className="font-medium mb-4">Connect With Me</h4>

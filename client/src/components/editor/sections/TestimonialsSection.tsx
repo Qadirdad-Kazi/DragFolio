@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PortfolioSection } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus, Trash2, Quote } from 'lucide-react';
+import { Edit, Plus, Trash2, Quote, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface Testimonial {
@@ -21,13 +21,17 @@ interface TestimonialsSectionProps {
   isSelected: boolean;
   onSelect: () => void;
   updateSection: (updates: Partial<PortfolioSection>) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
 export default function TestimonialsSection({
   section,
   isSelected,
   onSelect,
-  updateSection
+  updateSection,
+  onMoveUp,
+  onMoveDown
 }: TestimonialsSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
@@ -50,14 +54,14 @@ export default function TestimonialsSection({
       company: 'Company Name',
       image: ''
     };
-    
+
     updateSection({
       content: {
         ...content,
         testimonials: [...testimonials, newTestimonial]
       }
     });
-    
+
     setEditingTestimonial(newTestimonial);
   };
 
@@ -66,7 +70,7 @@ export default function TestimonialsSection({
     updateSection({
       content: {
         ...content,
-        testimonials: testimonials.map(t => 
+        testimonials: testimonials.map(t =>
           t.id === updatedTestimonial.id ? updatedTestimonial : t
         )
       }
@@ -81,7 +85,7 @@ export default function TestimonialsSection({
         testimonials: testimonials.filter(t => t.id !== testimonialId)
       }
     });
-    
+
     if (editingTestimonial?.id === testimonialId) {
       setEditingTestimonial(null);
     }
@@ -92,22 +96,54 @@ export default function TestimonialsSection({
       className={`portfolio-section ${isSelected ? 'ring-2 ring-primary' : ''}`}
       onClick={onSelect}
     >
-      <div className="portfolio-section-header">
-        <h3 className="text-xl font-semibold">{section.title}</h3>
-        {isSelected && (
-          <div className="flex space-x-2">
-            <Button variant="ghost" size="sm" onClick={addTestimonial}>
-              <Plus size={16} className="mr-2" />
-              Add Testimonial
-            </Button>
-            <Button variant="ghost" size="sm" onClick={toggleEditing}>
-              <Edit size={16} className="mr-2" />
-              {isEditing ? 'Done' : 'Edit'}
-            </Button>
-          </div>
-        )}
+      <div className="portfolio-section-header p-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{section.title}</h3>
       </div>
-      
+
+      {isSelected && (
+        <div className="absolute top-4 -right-16 flex flex-col gap-2 z-10">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveUp}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Up"
+          >
+            <ArrowUp size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveDown}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Down"
+          >
+            <ArrowDown size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={toggleEditing}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={isEditing ? "Finish Editing" : "Edit Section"}
+          >
+            {isEditing ? <Check size={18} className="text-green-600" /> : <Edit size={18} className="text-gray-600 dark:text-gray-300" />}
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={addTestimonial}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Add Testimonial"
+          >
+            <Plus size={18} className="text-blue-600" />
+          </Button>
+        </div>
+      )}
+
       <CardContent>
         {testimonials.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -122,25 +158,24 @@ export default function TestimonialsSection({
         ) : (
           <div className={`grid ${section.layout === 'two-columns' ? 'grid-cols-2' : 'grid-cols-1'} gap-6`}>
             {testimonials.map(testimonial => (
-              <div 
-                key={testimonial.id} 
-                className={`bg-gray-50 rounded-lg p-6 ${
-                  editingTestimonial?.id === testimonial.id ? 'ring-2 ring-primary' : ''
-                }`}
+              <div
+                key={testimonial.id}
+                className={`bg-gray-50 rounded-lg p-6 ${editingTestimonial?.id === testimonial.id ? 'ring-2 ring-primary' : ''
+                  }`}
               >
                 {isEditing ? (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <h4 className="font-medium">Edit Testimonial</h4>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => removeTestimonial(testimonial.id)}
                       >
                         <Trash2 size={16} className="text-red-500" />
                       </Button>
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`testimonial-quote-${testimonial.id}`}>Quote</Label>
                       <Textarea
@@ -151,7 +186,7 @@ export default function TestimonialsSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`testimonial-author-${testimonial.id}`}>Author Name</Label>
                       <Input
@@ -161,7 +196,7 @@ export default function TestimonialsSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`testimonial-title-${testimonial.id}`}>Job Title</Label>
                       <Input
@@ -171,7 +206,7 @@ export default function TestimonialsSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`testimonial-company-${testimonial.id}`}>Company</Label>
                       <Input
@@ -181,7 +216,7 @@ export default function TestimonialsSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`testimonial-image-${testimonial.id}`}>Profile Image URL</Label>
                       <Input

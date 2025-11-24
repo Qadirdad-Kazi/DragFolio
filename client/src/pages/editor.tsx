@@ -431,6 +431,21 @@ export default function Editor() {
     }));
   };
 
+  // Move section up or down
+  const moveSection = (id: string, direction: 'up' | 'down') => {
+    const sortedSections = [...portfolio.sections].sort((a, b) => a.order - b.order);
+    const sectionIndex = sortedSections.findIndex(s => s.id === id);
+
+    if (sectionIndex === -1) return;
+
+    const newIndex = direction === 'up' ? sectionIndex - 1 : sectionIndex + 1;
+
+    // Check bounds
+    if (newIndex < 0 || newIndex >= sortedSections.length) return;
+
+    reorderSections(sectionIndex, newIndex);
+  };
+
   // Update theme
   const updateTheme = (updates: Partial<PortfolioTheme>) => {
     // Create a new theme object with the updates
@@ -723,6 +738,7 @@ export default function Editor() {
               updateSection={updateSection}
               previewDevice={previewDevice}
               setPreviewDevice={setPreviewDevice}
+              moveSection={moveSection}
             />
           </div>
 

@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Edit, Image as ImageIcon, GripVertical, Move } from 'lucide-react';
+import { Edit, Image as ImageIcon, GripVertical, Move, Linkedin, Github, Twitter, Globe, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { Box } from '@mui/material';
 
 interface AboutSectionProps {
@@ -13,6 +13,8 @@ interface AboutSectionProps {
   onSelect: () => void;
   updateSection: (updates: Partial<PortfolioSection>) => void;
   templateCategory?: string;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
 export default function AboutSection({
@@ -20,14 +22,17 @@ export default function AboutSection({
   isSelected,
   onSelect,
   updateSection,
-  templateCategory = 'professional' // Default template category
+  templateCategory = 'professional', // Default template category
+  onMoveUp,
+  onMoveDown
 }: AboutSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   // Ensure all content properties are always strings to prevent controlled/uncontrolled input warnings
   const content = {
     headline: section.content?.headline || '',
     bio: section.content?.bio || '',
-    image: section.content?.image || ''
+    image: section.content?.image || '',
+    socialLinks: section.content?.socialLinks || { linkedin: '', github: '', twitter: '', website: '' }
   };
 
   // Handle headline change
@@ -56,6 +61,19 @@ export default function AboutSection({
       content: {
         ...content,
         image: e.target.value
+      }
+    });
+  };
+
+  // Handle social link change
+  const handleSocialLinkChange = (platform: string, value: string) => {
+    updateSection({
+      content: {
+        ...content,
+        socialLinks: {
+          ...content.socialLinks,
+          [platform]: value
+        }
       }
     });
   };
@@ -91,7 +109,7 @@ export default function AboutSection({
 
   // Get template-specific styles
   const getTemplateStyles = () => {
-    switch(templateCategory) {
+    switch (templateCategory) {
       case 'creative':
         return 'bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-900 dark:to-purple-900 border-l-4 border-purple-400';
       case 'minimal':
@@ -108,9 +126,8 @@ export default function AboutSection({
 
   return (
     <Card
-      className={`portfolio-section relative ${isSelected ? 'ring-2 ring-primary shadow-lg' : 'shadow-md hover:shadow-lg transition-shadow duration-300'} ${
-        section.layout === 'full' ? 'w-full' : section.layout === 'half' ? 'w-1/2' : ''
-      } ${getTemplateStyles()}`}
+      className={`portfolio-section relative ${isSelected ? 'ring-2 ring-primary shadow-lg' : 'shadow-md hover:shadow-lg transition-shadow duration-300'} ${section.layout === 'full' ? 'w-full' : section.layout === 'half' ? 'w-1/2' : ''
+        } ${getTemplateStyles()}`}
       onClick={onSelect}
     >
       {isEditing && (
@@ -123,14 +140,42 @@ export default function AboutSection({
           {isEditing && <Move size={16} className="mr-2 text-gray-400" />}
           {section.title}
         </h3>
-        {isSelected && (
-          <Button variant="ghost" size="sm" onClick={toggleEditing} className="ml-auto transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800">
-            <Edit size={16} className="mr-2" />
-            {isEditing ? 'Done' : 'Edit'}
-          </Button>
-        )}
       </div>
-      
+
+      {isSelected && (
+        <div className="absolute top-4 -right-16 flex flex-col gap-2 z-10">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveUp}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Up"
+          >
+            <ArrowUp size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveDown}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Down"
+          >
+            <ArrowDown size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={toggleEditing}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={isEditing ? "Finish Editing" : "Edit Section"}
+          >
+            {isEditing ? <Check size={18} className="text-green-600" /> : <Edit size={18} className="text-gray-600 dark:text-gray-300" />}
+          </Button>
+        </div>
+      )}
+
       <CardContent className="p-5">
         {isEditing ? (
           <div className="space-y-6 animate-in fade-in duration-300">
@@ -144,7 +189,7 @@ export default function AboutSection({
               />
               <p className="text-xs text-gray-500 mt-1">A short tagline that describes your professional identity</p>
             </div>
-            
+
             <div className="transition-all duration-200 hover:translate-y-[-2px]">
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Bio</label>
               <Textarea
@@ -156,7 +201,7 @@ export default function AboutSection({
               />
               <p className="text-xs text-gray-500 mt-1">Tell visitors about yourself, your skills, and your experience</p>
             </div>
-            
+
             <div className="transition-all duration-200 hover:translate-y-[-2px]">
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Profile Image URL</label>
               <div className="flex">
@@ -174,7 +219,7 @@ export default function AboutSection({
               <p className="text-xs text-gray-500 mt-1">
                 Enter a URL to your profile image. You can use services like Imgur or Cloudinary to host your images.
               </p>
-              
+
               {content.image && (
                 <div className="mt-3 p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
                   <p className="text-xs text-gray-500 mb-2">Image Preview:</p>
@@ -190,6 +235,48 @@ export default function AboutSection({
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="transition-all duration-200 hover:translate-y-[-2px]">
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Social Links</label>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center">
+                  <Linkedin size={18} className="mr-2 text-blue-600" />
+                  <Input
+                    value={content.socialLinks?.linkedin || ''}
+                    onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
+                    placeholder="LinkedIn URL"
+                    className="border-gray-300 dark:border-gray-700"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <Github size={18} className="mr-2 text-gray-800 dark:text-white" />
+                  <Input
+                    value={content.socialLinks?.github || ''}
+                    onChange={(e) => handleSocialLinkChange('github', e.target.value)}
+                    placeholder="GitHub URL"
+                    className="border-gray-300 dark:border-gray-700"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <Twitter size={18} className="mr-2 text-sky-500" />
+                  <Input
+                    value={content.socialLinks?.twitter || ''}
+                    onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
+                    placeholder="Twitter URL"
+                    className="border-gray-300 dark:border-gray-700"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <Globe size={18} className="mr-2 text-green-600" />
+                  <Input
+                    value={content.socialLinks?.website || ''}
+                    onChange={(e) => handleSocialLinkChange('website', e.target.value)}
+                    placeholder="Personal Website URL"
+                    className="border-gray-300 dark:border-gray-700"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -212,16 +299,40 @@ export default function AboutSection({
                 </div>
               </div>
             )}
-            
+
             <div className={`${section.layout === 'two-columns' && content.image ? 'w-2/3' : 'w-full'} transition-all duration-300`}>
               {content.headline && (
                 <h4 className="text-2xl font-medium mb-3 text-gray-800 dark:text-gray-100">{content.headline}</h4>
               )}
-              
+
               {content.bio && (
-                <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed text-lg">{content.bio}</p>
+                <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed text-lg mb-6">{content.bio}</p>
               )}
-              
+
+              {/* Social Links Display */}
+              <div className="flex flex-wrap gap-4 mt-4">
+                {content.socialLinks?.linkedin && (
+                  <a href={content.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+                    <Linkedin size={20} />
+                  </a>
+                )}
+                {content.socialLinks?.github && (
+                  <a href={content.socialLinks.github} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <Github size={20} />
+                  </a>
+                )}
+                {content.socialLinks?.twitter && (
+                  <a href={content.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-sky-50 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400 rounded-full hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors">
+                    <Twitter size={20} />
+                  </a>
+                )}
+                {content.socialLinks?.website && (
+                  <a href={content.socialLinks.website} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
+                    <Globe size={20} />
+                  </a>
+                )}
+              </div>
+
               {!content.headline && !content.bio && !isEditing && (
                 <div className="text-center py-10 px-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
                   <ImageIcon size={36} className="text-gray-400 mx-auto mb-3" />

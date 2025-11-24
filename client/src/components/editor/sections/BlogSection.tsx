@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus, Trash2, Calendar, ArrowUpRight } from 'lucide-react';
+import { Edit, Plus, Trash2, Calendar, ArrowUpRight, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface BlogPost {
@@ -22,13 +22,17 @@ interface BlogSectionProps {
   isSelected: boolean;
   onSelect: () => void;
   updateSection: (updates: Partial<PortfolioSection>) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
 export default function BlogSection({
   section,
   isSelected,
   onSelect,
-  updateSection
+  updateSection,
+  onMoveUp,
+  onMoveDown
 }: BlogSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
@@ -52,14 +56,14 @@ export default function BlogSection({
       image: '',
       tags: []
     };
-    
+
     updateSection({
       content: {
         ...content,
         posts: [...posts, newPost]
       }
     });
-    
+
     setEditingPost(newPost);
   };
 
@@ -68,7 +72,7 @@ export default function BlogSection({
     updateSection({
       content: {
         ...content,
-        posts: posts.map(p => 
+        posts: posts.map(p =>
           p.id === updatedPost.id ? updatedPost : p
         )
       }
@@ -83,7 +87,7 @@ export default function BlogSection({
         posts: posts.filter(p => p.id !== postId)
       }
     });
-    
+
     if (editingPost?.id === postId) {
       setEditingPost(null);
     }
@@ -104,7 +108,7 @@ export default function BlogSection({
   // Format date for display
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', {
@@ -122,22 +126,54 @@ export default function BlogSection({
       className={`portfolio-section ${isSelected ? 'ring-2 ring-primary' : ''}`}
       onClick={onSelect}
     >
-      <div className="portfolio-section-header">
-        <h3 className="text-xl font-semibold">{section.title}</h3>
-        {isSelected && (
-          <div className="flex space-x-2">
-            <Button variant="ghost" size="sm" onClick={addPost}>
-              <Plus size={16} className="mr-2" />
-              Add Blog Post
-            </Button>
-            <Button variant="ghost" size="sm" onClick={toggleEditing}>
-              <Edit size={16} className="mr-2" />
-              {isEditing ? 'Done' : 'Edit'}
-            </Button>
-          </div>
-        )}
+      <div className="portfolio-section-header p-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{section.title}</h3>
       </div>
-      
+
+      {isSelected && (
+        <div className="absolute top-4 -right-16 flex flex-col gap-2 z-10">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveUp}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Up"
+          >
+            <ArrowUp size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveDown}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Down"
+          >
+            <ArrowDown size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={toggleEditing}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={isEditing ? "Finish Editing" : "Edit Section"}
+          >
+            {isEditing ? <Check size={18} className="text-green-600" /> : <Edit size={18} className="text-gray-600 dark:text-gray-300" />}
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={addPost}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Add Blog Post"
+          >
+            <Plus size={18} className="text-blue-600" />
+          </Button>
+        </div>
+      )}
+
       <CardContent>
         {posts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -152,25 +188,24 @@ export default function BlogSection({
         ) : (
           <div className={`grid ${section.layout === 'two-columns' ? 'grid-cols-2' : 'grid-cols-1'} gap-6`}>
             {posts.map(post => (
-              <div 
-                key={post.id} 
-                className={`border rounded-lg overflow-hidden ${
-                  editingPost?.id === post.id ? 'ring-2 ring-primary' : ''
-                }`}
+              <div
+                key={post.id}
+                className={`border rounded-lg overflow-hidden ${editingPost?.id === post.id ? 'ring-2 ring-primary' : ''
+                  }`}
               >
                 {isEditing ? (
                   <div className="p-4 space-y-4">
                     <div className="flex justify-between items-center">
                       <h4 className="font-medium">Edit Blog Post</h4>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => removePost(post.id)}
                       >
                         <Trash2 size={16} className="text-red-500" />
                       </Button>
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`post-title-${post.id}`}>Title</Label>
                       <Input
@@ -180,7 +215,7 @@ export default function BlogSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`post-summary-${post.id}`}>Summary</Label>
                       <Textarea
@@ -191,7 +226,7 @@ export default function BlogSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`post-date-${post.id}`}>Publication Date</Label>
                       <Input
@@ -202,7 +237,7 @@ export default function BlogSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`post-url-${post.id}`}>Blog URL</Label>
                       <Input
@@ -213,7 +248,7 @@ export default function BlogSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`post-image-${post.id}`}>Featured Image URL</Label>
                       <Input
@@ -224,7 +259,7 @@ export default function BlogSection({
                         className="mt-1"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor={`post-tags-${post.id}`}>Tags</Label>
                       <Input
@@ -253,14 +288,14 @@ export default function BlogSection({
                     )}
                     <div className="p-4">
                       <h4 className="text-lg font-medium mb-2">{post.title}</h4>
-                      
+
                       <div className="flex items-center text-sm text-gray-500 mb-3">
                         <Calendar size={14} className="mr-1" />
                         <span>{formatDate(post.date)}</span>
                       </div>
-                      
+
                       <p className="text-gray-600 mb-4">{post.summary}</p>
-                      
+
                       {post.tags && post.tags.length > 0 && (
                         <div className="mb-4">
                           <div className="flex flex-wrap gap-2">
@@ -275,7 +310,7 @@ export default function BlogSection({
                           </div>
                         </div>
                       )}
-                      
+
                       {post.url && (
                         <a
                           href={post.url}

@@ -84,6 +84,7 @@ interface EditorCanvasProps {
   updateSection: (id: string, updates: Partial<PortfolioSection>) => void;
   previewDevice: PreviewDeviceType;
   setPreviewDevice: (device: PreviewDeviceType) => void;
+  moveSection: (id: string, direction: 'up' | 'down') => void;
 }
 
 // Define styles for the editor canvas
@@ -113,7 +114,8 @@ export default function EditorCanvas({
   setSelectedSection,
   updateSection,
   previewDevice,
-  setPreviewDevice
+  setPreviewDevice,
+  moveSection
 }: EditorCanvasProps) {
   // Set up drop target for canvas
   const [{ isOver }, drop] = useDrop({
@@ -135,6 +137,8 @@ export default function EditorCanvas({
       onSelect: () => setSelectedSection(section.id),
       updateSection: (updates: Partial<PortfolioSection>) => updateSection(section.id, updates),
       templateCategory,
+      onMoveUp: () => moveSection(section.id, 'up'),
+      onMoveDown: () => moveSection(section.id, 'down'),
     };
 
     switch (section.type) {

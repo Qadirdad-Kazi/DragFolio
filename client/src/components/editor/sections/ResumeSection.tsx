@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PortfolioSection } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Edit, Plus, Trash2, Briefcase, GraduationCap } from 'lucide-react';
+import { Edit, Plus, Trash2, Briefcase, GraduationCap, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -35,13 +35,17 @@ interface ResumeSectionProps {
   isSelected: boolean;
   onSelect: () => void;
   updateSection: (updates: Partial<PortfolioSection>) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
 export default function ResumeSection({
   section,
   isSelected,
   onSelect,
-  updateSection
+  updateSection,
+  onMoveUp,
+  onMoveDown
 }: ResumeSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('experience');
@@ -66,7 +70,7 @@ export default function ResumeSection({
       current: false,
       description: 'Describe your responsibilities and achievements'
     };
-    
+
     updateSection({
       content: {
         ...content,
@@ -80,7 +84,7 @@ export default function ResumeSection({
     updateSection({
       content: {
         ...content,
-        experience: experience.map(exp => 
+        experience: experience.map(exp =>
           exp.id === updatedExperience.id ? updatedExperience : exp
         )
       }
@@ -109,7 +113,7 @@ export default function ResumeSection({
       current: false,
       description: 'Describe your studies and achievements'
     };
-    
+
     updateSection({
       content: {
         ...content,
@@ -123,7 +127,7 @@ export default function ResumeSection({
     updateSection({
       content: {
         ...content,
-        education: education.map(edu => 
+        education: education.map(edu =>
           edu.id === updatedEducation.id ? updatedEducation : edu
         )
       }
@@ -145,29 +149,66 @@ export default function ResumeSection({
       className={`portfolio-section ${isSelected ? 'ring-2 ring-primary' : ''}`}
       onClick={onSelect}
     >
-      <div className="portfolio-section-header">
-        <h3 className="text-xl font-semibold">{section.title}</h3>
-        {isSelected && (
-          <div className="flex space-x-2">
-            {activeTab === 'experience' ? (
-              <Button variant="ghost" size="sm" onClick={addExperience}>
-                <Plus size={16} className="mr-2" />
-                Add Experience
-              </Button>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={addEducation}>
-                <Plus size={16} className="mr-2" />
-                Add Education
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={toggleEditing}>
-              <Edit size={16} className="mr-2" />
-              {isEditing ? 'Done' : 'Edit'}
-            </Button>
-          </div>
-        )}
+      <div className="portfolio-section-header p-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{section.title}</h3>
       </div>
-      
+
+      {isSelected && (
+        <div className="absolute top-4 -right-16 flex flex-col gap-2 z-10">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveUp}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Up"
+          >
+            <ArrowUp size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={onMoveDown}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Move Down"
+          >
+            <ArrowDown size={18} className="text-gray-600 dark:text-gray-300" />
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={toggleEditing}
+            className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={isEditing ? "Finish Editing" : "Edit Section"}
+          >
+            {isEditing ? <Check size={18} className="text-green-600" /> : <Edit size={18} className="text-gray-600 dark:text-gray-300" />}
+          </Button>
+
+          {activeTab === 'experience' ? (
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={addExperience}
+              className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+              title="Add Experience"
+            >
+              <Plus size={18} className="text-blue-600" />
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={addEducation}
+              className="h-10 w-10 rounded-full shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700"
+              title="Add Education"
+            >
+              <Plus size={18} className="text-blue-600" />
+            </Button>
+          )}
+        </div>
+      )}
+
       <CardContent>
         <Tabs defaultValue="experience" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
@@ -180,7 +221,7 @@ export default function ResumeSection({
               Education
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="experience">
             {experience.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -195,8 +236,8 @@ export default function ResumeSection({
             ) : (
               <div className="space-y-6">
                 {experience.map(exp => (
-                  <div 
-                    key={exp.id} 
+                  <div
+                    key={exp.id}
                     className="border-l-4 border-primary pl-4 py-1"
                   >
                     {isEditing ? (
@@ -211,8 +252,8 @@ export default function ResumeSection({
                               className="mt-1"
                             />
                           </div>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => removeExperience(exp.id)}
                             className="mt-6"
@@ -220,27 +261,27 @@ export default function ResumeSection({
                             <Trash2 size={16} className="text-red-500" />
                           </Button>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor={`exp-company-${exp.id}`}>Company</Label>
-                            <Input
-                              id={`exp-company-${exp.id}`}
-                              value={exp.company || ''}
-                              onChange={(e) => updateExperience({ ...exp, company: e.target.value })}
-                              className="mt-1"
-                            />
+                          <Input
+                            id={`exp-company-${exp.id}`}
+                            value={exp.company || ''}
+                            onChange={(e) => updateExperience({ ...exp, company: e.target.value })}
+                            className="mt-1"
+                          />
                         </div>
-                        
+
                         <div>
                           <Label htmlFor={`exp-location-${exp.id}`}>Location</Label>
-                            <Input
-                              id={`exp-location-${exp.id}`}
-                              value={exp.location || ''}
-                              onChange={(e) => updateExperience({ ...exp, location: e.target.value })}
-                              className="mt-1"
-                            />
+                          <Input
+                            id={`exp-location-${exp.id}`}
+                            value={exp.location || ''}
+                            onChange={(e) => updateExperience({ ...exp, location: e.target.value })}
+                            className="mt-1"
+                          />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label htmlFor={`exp-start-${exp.id}`}>Start Date</Label>
@@ -252,7 +293,7 @@ export default function ResumeSection({
                               className="mt-1"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor={`exp-end-${exp.id}`}>End Date</Label>
                             <div className="flex items-center space-x-2 mt-1">
@@ -268,8 +309,8 @@ export default function ResumeSection({
                                   type="checkbox"
                                   id={`exp-current-${exp.id}`}
                                   checked={exp.current}
-                                  onChange={(e) => updateExperience({ 
-                                    ...exp, 
+                                  onChange={(e) => updateExperience({
+                                    ...exp,
                                     current: e.target.checked,
                                     endDate: e.target.checked ? 'Present' : exp.endDate
                                   })}
@@ -279,16 +320,16 @@ export default function ResumeSection({
                             </div>
                           </div>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor={`exp-description-${exp.id}`}>Description</Label>
-                            <Textarea
-                              id={`exp-description-${exp.id}`}
-                              value={exp.description || ''}
-                              onChange={(e) => updateExperience({ ...exp, description: e.target.value })}
-                              rows={3}
-                              className="mt-1"
-                            />
+                          <Textarea
+                            id={`exp-description-${exp.id}`}
+                            value={exp.description || ''}
+                            onChange={(e) => updateExperience({ ...exp, description: e.target.value })}
+                            rows={3}
+                            className="mt-1"
+                          />
                         </div>
                       </div>
                     ) : (
@@ -318,7 +359,7 @@ export default function ResumeSection({
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="education">
             {education.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -333,8 +374,8 @@ export default function ResumeSection({
             ) : (
               <div className="space-y-6">
                 {education.map(edu => (
-                  <div 
-                    key={edu.id} 
+                  <div
+                    key={edu.id}
                     className="border-l-4 border-primary pl-4 py-1"
                   >
                     {isEditing ? (
@@ -349,8 +390,8 @@ export default function ResumeSection({
                               className="mt-1"
                             />
                           </div>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => removeEducation(edu.id)}
                             className="mt-6"
@@ -358,7 +399,7 @@ export default function ResumeSection({
                             <Trash2 size={16} className="text-red-500" />
                           </Button>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor={`edu-institution-${edu.id}`}>Institution</Label>
                           <Input
@@ -368,7 +409,7 @@ export default function ResumeSection({
                             className="mt-1"
                           />
                         </div>
-                        
+
                         <div>
                           <Label htmlFor={`edu-location-${edu.id}`}>Location</Label>
                           <Input
@@ -378,7 +419,7 @@ export default function ResumeSection({
                             className="mt-1"
                           />
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <Label htmlFor={`edu-start-${edu.id}`}>Start Date</Label>
@@ -390,7 +431,7 @@ export default function ResumeSection({
                               className="mt-1"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor={`edu-end-${edu.id}`}>End Date</Label>
                             <div className="flex items-center space-x-2 mt-1">
@@ -406,8 +447,8 @@ export default function ResumeSection({
                                   type="checkbox"
                                   id={`edu-current-${edu.id}`}
                                   checked={edu.current}
-                                  onChange={(e) => updateEducation({ 
-                                    ...edu, 
+                                  onChange={(e) => updateEducation({
+                                    ...edu,
                                     current: e.target.checked,
                                     endDate: e.target.checked ? 'Present' : edu.endDate
                                   })}
@@ -417,7 +458,7 @@ export default function ResumeSection({
                             </div>
                           </div>
                         </div>
-                        
+
                         <div>
                           <Label htmlFor={`edu-description-${edu.id}`}>Description</Label>
                           <Textarea
