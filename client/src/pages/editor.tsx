@@ -8,7 +8,7 @@ import EditorCanvas from '@/components/editor/EditorCanvas';
 import EditorSettings from '@/components/editor/EditorSettings';
 import ExportModal from '@/components/editor/ExportModal';
 // import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { getDefaultTitle, getDefaultContent, reorder } from '@/lib/utils';
 import { downloadPortfolioHtml, downloadPortfolioPdf } from '@/lib/exportUtils';
 import { SectionType, PortfolioSection, PortfolioTheme, Portfolio, PreviewDeviceType } from '@/types';

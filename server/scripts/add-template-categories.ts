@@ -30,10 +30,10 @@ type Template = {
   updatedAt?: string;
 };
 
-// Create 10 different template categories
+// Create 20 different template categories
 const templateCategories = [
   'developer',
-  'designer',
+  'designer', 
   'student',
   'freelancer',
   'photographer',
@@ -41,7 +41,17 @@ const templateCategories = [
   'artist',
   'business',
   'educator',
-  'healthcare'
+  'healthcare',
+  'developer', // Modern Developer
+  'designer',  // Creative Designer
+  'student',   // Graduate Student
+  'freelancer', // Digital Freelancer
+  'photographer', // Portrait Photographer
+  'writer',    // Content Writer
+  'artist',    // Digital Artist
+  'business',  // Startup Business
+  'educator',  // Online Educator
+  'healthcare' // Healthcare Professional
 ] as const;
 
 // Type for our categories
@@ -49,12 +59,28 @@ type TemplateCategory = typeof templateCategories[number];
 
 // Create templates for each category
 const templates: Template[] = templateCategories.map((category, index) => {
-  const id = (index + 11).toString(); // Start from 11 to avoid conflicts with existing templates
+  const id = (index + 1).toString(); // Start from 1
+  
+  // Create different variations for duplicate categories
+  const variations = {
+    10: 'Modern ',
+    11: 'Creative ',
+    12: 'Graduate ',
+    13: 'Digital ',
+    14: 'Portrait ',
+    15: 'Content ',
+    16: 'Digital ',
+    17: 'Startup ',
+    18: 'Online ',
+    19: 'Healthcare '
+  };
+  
+  const prefix = variations[index] || '';
   
   return {
     id,
-    name: `${category.charAt(0).toUpperCase() + category.slice(1)} Portfolio`,
-    description: `A professional template for ${category}s to showcase their work and skills.`,
+    name: `${prefix}${category.charAt(0).toUpperCase() + category.slice(1)} Portfolio`,
+    description: `A ${prefix.toLowerCase()}professional template for ${category}s to showcase their work and skills.`,
     category,
     thumbnail: `/images/templates/${category}.png`,
     sections: [

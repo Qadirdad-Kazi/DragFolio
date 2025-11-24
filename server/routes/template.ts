@@ -64,16 +64,15 @@ type Template = {
   updatedAt?: string;
 };
 
-// Combine existing templates with our new category templates
+// Use category templates as our main template source
 const templates: Template[] = [
   // Include our category templates
   ...categoryTemplates,
-  // Keep the existing templates as well
-  // Template 1: Developer Portfolio
+  // Additional specialized templates
   {
-    id: '1',
-    name: 'Developer Portfolio',
-    description: 'A clean, modern template for software developers to showcase their skills and projects.',
+    id: '21',
+    name: 'Senior Developer Portfolio',
+    description: 'An advanced template for senior software developers and tech leads.',
     category: 'developer',
     thumbnail: '/images/templates/developer.png',
     sections: [
@@ -82,26 +81,26 @@ const templates: Template[] = [
         type: 'about',
         title: 'About Me',
         content: {
-          headline: 'Software Developer',
-          bio: 'I am a passionate software developer with expertise in web technologies and application development.',
-          image: 'https://via.placeholder.com/400x400?text=Developer'
+          headline: 'Senior Software Developer',
+          bio: 'I am an experienced senior software developer and tech lead with expertise in full-stack development.',
+          image: 'https://via.placeholder.com/400x400?text=Senior+Dev'
         },
         order: 0,
         layout: 'full'
       },
       {
-        id: 'projects-1',
+        id: 'projects-21',
         type: 'projects',
-        title: 'My Projects',
+        title: 'Key Projects',
         content: {
           projects: [
             {
-              title: 'E-commerce Platform',
-              description: 'A full-stack e-commerce solution',
-              technologies: ['React', 'Node.js', 'MongoDB'],
-              githubUrl: 'https://github.com/example/ecommerce',
-              demoUrl: 'https://ecommerce-demo.example.com',
-              image: 'https://example.com/projects/ecommerce.jpg'
+              title: 'Enterprise Platform',
+              description: 'Large-scale enterprise software solution',
+              technologies: ['React', 'TypeScript', 'Node.js', 'PostgreSQL'],
+              githubUrl: 'https://github.com/example/enterprise',
+              demoUrl: 'https://enterprise-demo.example.com',
+              image: 'https://via.placeholder.com/600x400?text=Enterprise+Platform'
             }
           ]
         },
@@ -109,26 +108,26 @@ const templates: Template[] = [
         layout: 'two-columns'
       },
       {
-        id: 'skills-1',
+        id: 'skills-21',
         type: 'skills',
-        title: 'Skills',
+        title: 'Technical Skills',
         content: {
           skills: [
-            { name: 'JavaScript', level: 90 },
-            { name: 'React', level: 85 },
-            { name: 'Node.js', level: 80 },
-            { name: 'TypeScript', level: 75 }
+            { name: 'JavaScript/TypeScript', level: 95 },
+            { name: 'System Architecture', level: 90 },
+            { name: 'Team Leadership', level: 85 },
+            { name: 'DevOps', level: 80 }
           ]
         },
         order: 2,
         layout: 'full'
       },
       {
-        id: 'contact-1',
+        id: 'contact-21',
         type: 'contact',
-        title: 'Contact Me',
+        title: 'Get in Touch',
         content: {
-          email: 'example@example.com',
+          email: 'senior@example.com',
           phone: '+1 123 456 7890',
           location: 'San Francisco, CA',
           showContactForm: true
@@ -139,14 +138,14 @@ const templates: Template[] = [
     ],
     theme: {
       mode: 'light',
-      primaryColor: '#3490dc',
-      secondaryColor: '#ffed4a',
+      primaryColor: '#1a202c',
+      secondaryColor: '#4299e1',
       fontFamily: 'Inter, sans-serif',
       fontSize: '16px'
     },
     isFeatured: true,
     isPublic: true
-  },
+  }
   {
     id: '2',
     name: 'Designer Portfolio',
@@ -202,513 +201,6 @@ const templates: Template[] = [
       primaryColor: '#f56565',
       secondaryColor: '#805ad5',
       fontFamily: 'Montserrat, sans-serif',
-      fontSize: '16px'
-    },
-    isFeatured: true,
-    isPublic: true
-  },
-  {
-    id: '3',
-    name: 'Photographer Portfolio',
-    description: 'A visually stunning template for photographers to showcase their work and services.',
-    category: 'photographer',
-    thumbnail: '/images/templates/photographer.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Professional Photographer',
-          bio: 'I capture moments that tell stories and evoke emotions through my lens.',
-          image: 'https://via.placeholder.com/400x400?text=Photographer'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Gallery',
-        content: {
-          projects: [
-            {
-              title: 'Portrait Photography',
-              description: 'Capturing the essence and personality of individuals.',
-              image: 'https://via.placeholder.com/600x400?text=Portrait'
-            },
-            {
-              title: 'Landscape Photography',
-              description: 'Breathtaking natural landscapes from around the world.',
-              image: 'https://via.placeholder.com/600x400?text=Landscape'
-            }
-          ]
-        },
-        order: 1,
-        layout: 'two-columns'
-      },
-      {
-        id: generateId(),
-        type: 'contact',
-        title: 'Book a Session',
-        content: {
-          email: 'photo@example.com',
-          phone: '+1 (123) 456-7890',
-          location: 'New York, NY',
-          showContactForm: true
-        },
-        order: 2,
-        layout: 'full'
-      }
-    ],
-    theme: {
-      mode: 'dark',
-      primaryColor: '#2d3748',
-      secondaryColor: '#4a5568',
-      fontFamily: 'Playfair Display, serif',
-      fontSize: '16px'
-    },
-    isFeatured: true,
-    isPublic: true
-  },
-  {
-    id: '4',
-    name: 'Student Portfolio',
-    description: 'A professional template for students to showcase their academic achievements and projects.',
-    category: 'student',
-    thumbnail: '/images/templates/student.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Computer Science Student',
-          bio: 'I am a dedicated student with a passion for learning and applying new technologies.',
-          image: 'https://via.placeholder.com/400x400?text=Student'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'skills',
-        title: 'Skills & Courses',
-        content: {
-          skills: [
-            { name: 'Programming', level: 80 },
-            { name: 'Data Analysis', level: 75 },
-            { name: 'UI/UX Design', level: 70 },
-            { name: 'Project Management', level: 65 }
-          ]
-        },
-        order: 1,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Academic Projects',
-        content: {
-          projects: [
-            {
-              title: 'Machine Learning Research',
-              description: 'Research on neural networks for image recognition.',
-              technologies: ['Python', 'TensorFlow', 'Jupyter'],
-              githubUrl: 'https://github.com/example/ml-research',
-              image: 'https://via.placeholder.com/600x400?text=ML+Project'
-            }
-          ]
-        },
-        order: 2,
-        layout: 'two-columns'
-      }
-    ],
-    theme: {
-      mode: 'light',
-      primaryColor: '#4299e1',
-      secondaryColor: '#ebf8ff',
-      fontFamily: 'Roboto, sans-serif',
-      fontSize: '16px'
-    },
-    isFeatured: true,
-    isPublic: true
-  },
-  {
-    id: '5',
-    name: 'Freelancer Portfolio',
-    description: 'A versatile template for freelancers to showcase their services and previous work.',
-    category: 'freelancer',
-    thumbnail: '/images/templates/freelancer.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Freelance Web Developer',
-          bio: 'I help businesses create modern, responsive websites that drive results.',
-          image: 'https://via.placeholder.com/400x400?text=Freelancer'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'skills',
-        title: 'Services',
-        content: {
-          skills: [
-            { name: 'Web Development', level: 95 },
-            { name: 'E-commerce Solutions', level: 90 },
-            { name: 'SEO Optimization', level: 85 },
-            { name: 'Website Maintenance', level: 95 }
-          ]
-        },
-        order: 1,
-        layout: 'half'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Recent Work',
-        content: {
-          projects: [
-            {
-              title: 'Restaurant Website',
-              description: 'A responsive website for a local restaurant with online ordering.',
-              technologies: ['HTML/CSS', 'JavaScript', 'PHP'],
-              demoUrl: 'https://restaurant-demo.example.com',
-              image: 'https://via.placeholder.com/600x400?text=Restaurant+Site'
-            }
-          ]
-        },
-        order: 2,
-        layout: 'two-columns'
-      },
-      {
-        id: generateId(),
-        type: 'contact',
-        title: 'Hire Me',
-        content: {
-          email: 'freelancer@example.com',
-          phone: '+1 (234) 567-8901',
-          location: 'Remote',
-          showContactForm: true
-        },
-        order: 3,
-        layout: 'full'
-      }
-    ],
-    theme: {
-      mode: 'light',
-      primaryColor: '#38b2ac',
-      secondaryColor: '#e6fffa',
-      fontFamily: 'Montserrat, sans-serif',
-      fontSize: '16px'
-    },
-    isFeatured: true,
-    isPublic: true
-  },
-  {
-    id: '6',
-    name: 'Writer Portfolio',
-    description: 'An elegant template for writers and content creators to showcase their work.',
-    category: 'freelancer',
-    thumbnail: '/images/templates/writer.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Professional Writer & Editor',
-          bio: 'I craft compelling stories and content that engage readers and deliver messages effectively.',
-          image: 'https://via.placeholder.com/400x400?text=Writer'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Published Works',
-        content: {
-          projects: [
-            {
-              title: 'The Hidden Path',
-              description: 'A novel exploring themes of self-discovery and adventure.',
-              demoUrl: 'https://amazon.com/example-book',
-              image: 'https://via.placeholder.com/600x400?text=Novel'
-            },
-            {
-              title: 'Corporate Storytelling',
-              description: 'A series of articles on effective brand narratives.',
-              demoUrl: 'https://medium.com/@example',
-              image: 'https://via.placeholder.com/600x400?text=Articles'
-            }
-          ]
-        },
-        order: 1,
-        layout: 'two-columns'
-      }
-    ],
-    theme: {
-      mode: 'light',
-      primaryColor: '#718096',
-      secondaryColor: '#e2e8f0',
-      fontFamily: 'Merriweather, serif',
-      fontSize: '16px'
-    },
-    isFeatured: false,
-    isPublic: true
-  },
-  {
-    id: '7',
-    name: 'Artist Portfolio',
-    description: 'A visually rich template for artists to showcase their creative works and exhibitions.',
-    category: 'designer',
-    thumbnail: '/images/templates/artist.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Contemporary Artist',
-          bio: 'I create mixed-media art that explores the intersection of technology and human emotion.',
-          image: 'https://via.placeholder.com/400x400?text=Artist'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Gallery',
-        content: {
-          projects: [
-            {
-              title: 'Digital Dreams',
-              description: 'A series exploring virtual reality and consciousness.',
-              image: 'https://via.placeholder.com/600x400?text=Digital+Art'
-            },
-            {
-              title: 'Urban Fragments',
-              description: 'Mixed media collages inspired by city life.',
-              image: 'https://via.placeholder.com/600x400?text=Mixed+Media'
-            }
-          ]
-        },
-        order: 1,
-        layout: 'two-columns'
-      }
-    ],
-    theme: {
-      mode: 'dark',
-      primaryColor: '#805ad5',
-      secondaryColor: '#d6bcfa',
-      fontFamily: 'Raleway, sans-serif',
-      fontSize: '16px'
-    },
-    isFeatured: false,
-    isPublic: true
-  },
-  {
-    id: '8',
-    name: 'Musician Portfolio',
-    description: 'A dynamic template for musicians to showcase their music, performances, and upcoming events.',
-    category: 'freelancer',
-    thumbnail: '/images/templates/artist.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Independent Musician',
-          bio: 'I create original music that blends electronic and acoustic elements into unique soundscapes.',
-          image: 'https://via.placeholder.com/400x400?text=Musician'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Music',
-        content: {
-          projects: [
-            {
-              title: 'Echoes of Tomorrow',
-              description: 'My latest album featuring 10 original tracks.',
-              demoUrl: 'https://spotify.com/example-album',
-              image: 'https://via.placeholder.com/600x400?text=Album'
-            }
-          ]
-        },
-        order: 1,
-        layout: 'two-columns'
-      },
-      {
-        id: generateId(),
-        type: 'blog',
-        title: 'Upcoming Shows',
-        content: {
-          posts: [
-            {
-              title: 'Summer Tour 2023',
-              excerpt: 'Catch me live in 10 cities across the country this summer.',
-              date: '2023-05-15',
-              url: 'https://example.com/events/summer-tour'
-            }
-          ]
-        },
-        order: 2,
-        layout: 'full'
-      }
-    ],
-    theme: {
-      mode: 'dark',
-      primaryColor: '#f56565',
-      secondaryColor: '#fed7d7',
-      fontFamily: 'Oswald, sans-serif',
-      fontSize: '16px'
-    },
-    isFeatured: false,
-    isPublic: true
-  },
-  {
-    id: '9',
-    name: 'Teacher Portfolio',
-    description: 'A professional template for educators to showcase their teaching philosophy and resources.',
-    category: 'student',
-    thumbnail: '/images/templates/educator.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Science Educator',
-          bio: 'I am passionate about making science accessible and engaging for students of all ages.',
-          image: 'https://via.placeholder.com/400x400?text=Teacher'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'skills',
-        title: 'Expertise',
-        content: {
-          skills: [
-            { name: 'Physics', level: 95 },
-            { name: 'Chemistry', level: 90 },
-            { name: 'STEM Education', level: 95 },
-            { name: 'Curriculum Development', level: 85 }
-          ]
-        },
-        order: 1,
-        layout: 'half'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Teaching Resources',
-        content: {
-          projects: [
-            {
-              title: 'Interactive Physics Labs',
-              description: 'A collection of hands-on experiments for high school students.',
-              demoUrl: 'https://teacherspayteachers.com/example',
-              image: 'https://via.placeholder.com/600x400?text=Physics+Labs'
-            }
-          ]
-        },
-        order: 2,
-        layout: 'two-columns'
-      }
-    ],
-    theme: {
-      mode: 'light',
-      primaryColor: '#48bb78',
-      secondaryColor: '#c6f6d5',
-      fontFamily: 'Lato, sans-serif',
-      fontSize: '16px'
-    },
-    isFeatured: false,
-    isPublic: true
-  },
-  {
-    id: '10',
-    name: 'Entrepreneur Portfolio',
-    description: 'A bold template for entrepreneurs and business owners to showcase their ventures and achievements.',
-    category: 'freelancer',
-    thumbnail: '/images/templates/business.png',
-    sections: [
-      {
-        id: generateId(),
-        type: 'about',
-        title: 'About Me',
-        content: {
-          headline: 'Tech Entrepreneur',
-          bio: 'I build and scale innovative businesses that solve real-world problems.',
-          image: 'https://via.placeholder.com/400x400?text=Entrepreneur'
-        },
-        order: 0,
-        layout: 'full'
-      },
-      {
-        id: generateId(),
-        type: 'projects',
-        title: 'Ventures',
-        content: {
-          projects: [
-            {
-              title: 'GreenTech Solutions',
-              description: 'A startup developing sustainable energy solutions for homes.',
-              demoUrl: 'https://greentechsolutions.example.com',
-              image: 'https://via.placeholder.com/600x400?text=GreenTech'
-            },
-            {
-              title: 'FinanceApp',
-              description: 'A personal finance management application with over 100,000 users.',
-              demoUrl: 'https://financeapp.example.com',
-              image: 'https://via.placeholder.com/600x400?text=FinanceApp'
-            }
-          ]
-        },
-        order: 1,
-        layout: 'two-columns'
-      },
-      {
-        id: generateId(),
-        type: 'testimonials',
-        title: 'Testimonials',
-        content: {
-          testimonials: [
-            {
-              quote: 'An innovative thinker with exceptional business acumen.',
-              author: 'Jane Smith, Venture Capitalist',
-              company: 'Invest Partners LLC'
-            },
-            {
-              quote: 'Transformed our approach to sustainability with creative solutions.',
-              author: 'John Doe, CEO',
-              company: 'EcoFriendly Corp'
-            }
-          ]
-        },
-        order: 2,
-        layout: 'full'
-      }
-    ],
-    theme: {
-      mode: 'light',
-      primaryColor: '#ed8936',
-      secondaryColor: '#feebc8',
-      fontFamily: 'Poppins, sans-serif',
       fontSize: '16px'
     },
     isFeatured: true,
@@ -777,82 +269,6 @@ router.get('/:id', (req, res) => {
     console.error('Error in GET /templates/:id:', error);
     return res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : String(error) });
   }
-});
-
-// Admin: Create a new template
-router.post('/', (req, res) => {
-  try {
-    // This would require admin authentication
-    // Validate request body
-    const validatedData = templateSchema.parse(req.body);
-
-    // Create new template
-    const newTemplate = {
-      id: Date.now().toString(),
-      ...validatedData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    } as Template;
-
-    // Save template (mock implementation)
-    templates.push(newTemplate);
-
-    res.status(201).json(newTemplate);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Validation error', errors: error.errors });
-    }
-    console.error('Create template error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Admin: Update a template
-router.put('/:id', (req, res) => {
-  try {
-    // This would require admin authentication
-    // Find template
-    const templateIndex = templates.findIndex(t => t.id === req.params.id);
-    if (templateIndex === -1) {
-      return res.status(404).json({ message: 'Template not found' });
-    }
-
-    // Validate request body
-    const validatedData = templateSchema.parse(req.body);
-
-    // Update template
-    const updatedTemplate = {
-      ...templates[templateIndex] as any,
-      ...validatedData,
-      updatedAt: new Date().toISOString()
-    } as Template;
-
-    // Save updated template (mock implementation)
-    templates[templateIndex] = updatedTemplate;
-
-    res.json(updatedTemplate);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Validation error', errors: error.errors });
-    }
-    console.error('Update template error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Admin: Delete a template
-router.delete('/:id', (req, res) => {
-  // This would require admin authentication
-  // Find template
-  const templateIndex = templates.findIndex(t => t.id === req.params.id);
-  if (templateIndex === -1) {
-    return res.status(404).json({ message: 'Template not found' });
-  }
-
-  // Remove template (mock implementation)
-  templates.splice(templateIndex, 1);
-
-  res.status(204).send();
 });
 
 export default router;
