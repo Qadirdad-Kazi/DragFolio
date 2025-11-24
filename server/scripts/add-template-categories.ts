@@ -30,10 +30,8 @@ type Template = {
   updatedAt?: string;
 };
 
-// Create 20 different template categories
+// Create 8 unique template categories (developer and designer will be added as specialized templates)
 const templateCategories = [
-  'developer',
-  'designer', 
   'student',
   'freelancer',
   'photographer',
@@ -41,17 +39,7 @@ const templateCategories = [
   'artist',
   'business',
   'educator',
-  'healthcare',
-  'developer', // Modern Developer
-  'designer',  // Creative Designer
-  'student',   // Graduate Student
-  'freelancer', // Digital Freelancer
-  'photographer', // Portrait Photographer
-  'writer',    // Content Writer
-  'artist',    // Digital Artist
-  'business',  // Startup Business
-  'educator',  // Online Educator
-  'healthcare' // Healthcare Professional
+  'healthcare'
 ] as const;
 
 // Type for our categories
