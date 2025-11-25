@@ -11,6 +11,7 @@ import ExportModal from '@/components/editor/ExportModal';
 import { useToast } from '@/hooks/use-toast';
 import { getDefaultTitle, getDefaultContent, reorder } from '@/lib/utils';
 import { downloadPortfolioHtml, downloadPortfolioPdf } from '@/lib/exportUtils';
+import { validateAndCleanStoredData, cleanUrlParameters, forceCleanup } from '@/lib/storageUtils';
 import { SectionType, PortfolioSection, PortfolioTheme, Portfolio, PreviewDeviceType } from '@/types';
 
 export default function Editor() {
@@ -118,6 +119,19 @@ export default function Editor() {
 
   // Load portfolio data or initialize from template
   useEffect(() => {
+    // Clean any corrupted data on mount
+    const wasDataCleared = validateAndCleanStoredData();
+    const wasUrlCleaned = cleanUrlParameters();
+    
+    if (wasDataCleared || wasUrlCleaned) {
+      console.log('Cleaned corrupted data, starting fresh');
+      toast({
+        title: 'Data Cleaned',
+        description: 'Removed corrupted portfolio data. Starting with a fresh editor.',
+        variant: 'default'
+      });
+    }
+    
     // Check if we have a template ID in the URL
     const searchParams = new URLSearchParams(typeof location === 'string' && location.includes('?') ? location.split('?')[1] : '');
     const templateId = searchParams.get('template');
@@ -184,6 +198,26 @@ export default function Editor() {
 
       // Load existing portfolio
       console.log('Loading portfolio with ID:', idToLoad);
+      
+      // Validate portfolio ID format (basic MongoDB ObjectId check)
+      if (idToLoad && (idToLoad.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(idToLoad))) {
+        console.warn('Invalid portfolio ID format:', idToLoad);
+        // Clear invalid ID and start fresh
+        localStorage.removeItem('editingPortfolioData');
+        localStorage.removeItem('selectedTemplateData');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Specifically block the problematic portfolio ID
+      if (idToLoad && idToLoad.includes('6920f51c9449dd1055bff59c')) {
+        console.warn('Blocking known problematic portfolio ID:', idToLoad);
+        forceCleanup();
+        // Redirect to clean editor
+        window.history.replaceState({}, '', '/editor');
+        setIsLoading(false);
+        return;
+      }
 
       // Check if we have stored template data for this portfolio ID
       if (storedTemplateData) {
@@ -223,11 +257,22 @@ export default function Editor() {
               })
               .catch(error => {
                 console.error('Error loading portfolio:', error);
+                
+                // Handle specific error cases
+                let errorMessage = 'Failed to load portfolio. Starting with a blank portfolio.';
+                if (error.message && error.message.includes('404')) {
+                  errorMessage = 'Portfolio not found. Starting with a fresh portfolio.';
+                  // Clear stale data
+                  localStorage.removeItem('editingPortfolioData');
+                  localStorage.removeItem('selectedTemplateData');
+                }
+                
                 toast({
                   title: 'Error',
-                  description: 'Failed to load portfolio. Starting with a blank portfolio.',
+                  description: errorMessage,
                   variant: 'destructive'
                 });
+                
                 // Reset to default portfolio state
                 setPortfolio({
                   title: 'My Portfolio',
@@ -497,8 +542,28 @@ export default function Editor() {
       let data;
 
       if (portfolioId) {
-        // Update existing portfolio
-        data = await portfolioApi.update(portfolioId, portfolio);
+        try {
+          // Try to update existing portfolio
+          data = await portfolioApi.update(portfolioId, portfolio);
+        } catch (updateError: any) {
+          // If portfolio not found (404), create a new one instead
+          if (updateError.message && updateError.message.includes('404')) {
+            console.log('Portfolio not found, creating new portfolio instead...');
+            data = await portfolioApi.create({
+              ...portfolio,
+              template: templateId || undefined
+            });
+            
+            // Update the URL to reflect the new portfolio ID
+            if (data.id) {
+              const newUrl = `/editor?id=${data.id}`;
+              window.history.replaceState({}, '', newUrl);
+            }
+          } else {
+            // Re-throw other errors
+            throw updateError;
+          }
+        }
       } else {
         // Create new portfolio from template
         data = await portfolioApi.create({
@@ -507,8 +572,8 @@ export default function Editor() {
         });
       }
 
-      // Update portfolio ID in state if it's a new portfolio
-      if (!portfolioId) {
+      // Update portfolio ID in state if it's a new portfolio or if we created one due to 404
+      if (!portfolioId || (data && data.id !== portfolioId)) {
         setPortfolio(prev => ({
           ...prev,
           id: data.id
@@ -524,9 +589,25 @@ export default function Editor() {
       return data;
     } catch (error) {
       console.error('Error saving portfolio:', error);
+      let errorMessage = '😔 Failed to save portfolio. Please check your connection and try again.';
+      
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes('404')) {
+          errorMessage = '🔄 Portfolio not found. Created a new portfolio instead.';
+          // Clear any stale data from localStorage
+          localStorage.removeItem('editingPortfolioData');
+          localStorage.removeItem('selectedTemplateData');
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          errorMessage = '🔒 Authentication required. Please log in again.';
+        } else if (error.message.includes('400')) {
+          errorMessage = '📝 Invalid portfolio data. Please check your inputs.';
+        }
+      }
+      
       toast({
         title: '❌ Oops!',
-        description: '😔 Failed to save portfolio. Please check your connection and try again.',
+        description: errorMessage,
         variant: 'destructive',
         duration: 5000,
       });
@@ -620,12 +701,13 @@ export default function Editor() {
       }
 
       console.log('Calling downloadPortfolioPdf with ID:', idToExport);
+      console.log('Current exportType state:', exportType);
       // Use the utility function to download the PDF
       await downloadPortfolioPdf(idToExport, portfolio.title || 'portfolio');
 
       toast({
-        title: 'PDF Export Started',
-        description: 'Your portfolio is being prepared as PDF. Please select "Save as PDF" in the print dialog.',
+        title: 'PDF Export Complete',
+        description: 'Your portfolio has been exported as a PDF file.',
         variant: 'default',
       });
     } catch (error) {
@@ -677,13 +759,11 @@ export default function Editor() {
           open={exportModalOpen}
           onOpenChange={(open) => {
             setExportModalOpen(open);
-            // If modal is closed, reset export type to default
-            if (!open) {
-              setExportType('html');
-            }
+            // Don't reset export type when modal closes
           }}
           onExport={handleExport}
           onExportTypeChange={setExportType}
+          currentExportType={exportType}
         />
         {/* Header with actions */}
         <div className="fixed top-0 left-0 right-0 h-16 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-10 shadow-lg">

@@ -384,8 +384,10 @@ export const downloadPortfolioPdf = async (portfolioId: string, portfolioName: s
     
     // Import and use jsPDF directly
     try {
-      const jsPDF = (await import('jspdf')).default;
-      console.log('jsPDF library loaded successfully');
+      console.log('Attempting to load jsPDF...');
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF || jsPDFModule;
+      console.log('jsPDF library loaded successfully', typeof jsPDF);
       
       // Create a new PDF document
       const doc = new jsPDF({
@@ -393,6 +395,8 @@ export const downloadPortfolioPdf = async (portfolioId: string, portfolioName: s
         unit: 'mm',
         format: 'a4'
       });
+      
+      console.log('PDF document created successfully');
       
       // Set up the document
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -522,13 +526,19 @@ export const downloadPortfolioPdf = async (portfolioId: string, portfolioName: s
       console.log(`Saving PDF as: ${filename}`);
       
       // Save the PDF
-      doc.save(filename);
-      
-      return Promise.resolve();
+      try {
+        doc.save(filename);
+        console.log('PDF saved successfully');
+        return Promise.resolve();
+      } catch (saveError) {
+        console.error('Error saving PDF:', saveError);
+        throw saveError;
+      }
     } catch (jsPdfError) {
       console.error('Error with jsPDF library:', jsPdfError);
-      // Fallback to browser print dialog
-      return fallbackPdfExport(portfolioId, portfolioName);
+      console.log('jsPDF failed, but NOT falling back to HTML method');
+      // Instead of falling back to HTML, throw the error so user knows PDF failed
+      throw new Error(`PDF generation failed: ${jsPdfError.message || 'Unknown error'}`);
     }
   } catch (error) {
     console.error('Error generating PDF:', error);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Portfolio } from '@/types';
 import {
   Dialog,
@@ -91,6 +91,7 @@ interface ExportModalProps {
   onOpenChange: (open: boolean) => void;
   onExport: () => Promise<void>;
   onExportTypeChange?: (type: 'html' | 'pdf') => void;
+  currentExportType?: 'html' | 'pdf';
 }
 
 export default function ExportModal({
@@ -99,12 +100,18 @@ export default function ExportModal({
   open,
   onOpenChange,
   onExport,
-  onExportTypeChange
+  onExportTypeChange,
+  currentExportType = 'html'
 }: ExportModalProps) {
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportSuccess, setExportSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [exportTab, setExportTab] = useState<number>(0); // 0 for HTML, 1 for PDF
+
+  // Sync export tab with current export type
+  useEffect(() => {
+    setExportTab(currentExportType === 'pdf' ? 1 : 0);
+  }, [currentExportType]);
 
   // Handle export
   const handleExport = async () => {
@@ -188,7 +195,12 @@ export default function ExportModal({
           {/* HTML Export Option */}
           <Fade in={true}>
             <ExportOption 
-              onClick={() => setExportTab(0)}
+              onClick={() => {
+                setExportTab(0);
+                if (onExportTypeChange) {
+                  onExportTypeChange('html');
+                }
+              }}
               sx={{ 
                 border: exportTab === 0 ? '2px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                 backgroundColor: exportTab === 0 ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
@@ -230,9 +242,14 @@ export default function ExportModal({
           {/* PDF Export Option */}
           <Fade in={true} style={{ transitionDelay: '150ms' }}>
             <ExportOption 
-              onClick={() => setExportTab(1)}
+              onClick={() => {
+                setExportTab(1);
+                if (onExportTypeChange) {
+                  onExportTypeChange('pdf');
+                }
+              }}
               sx={{ 
-                border: exportTab === 1 ? '2px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
+                border: exportTab === 1 ? '2px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 0.2)',
                 backgroundColor: exportTab === 1 ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
               }}
             >
